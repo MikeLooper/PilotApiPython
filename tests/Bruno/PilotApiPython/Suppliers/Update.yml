@@ -1,0 +1,44 @@
+info:
+  name: Update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{Host}}{{controller}}/update"
+  body:
+    type: json
+    data: |-
+      {
+        "address": "49 Gilbert St.",
+        "city": "London",
+        "companyName": "Test Company Updated",
+        "contactName": "Test Name Updated",
+        "contactTitle": "Test Title Updated",
+        "country": "UK",
+        "fax": null,
+        "homePage": null,
+        "phone": "(171) 555-2222",
+        "postalCode": "EC1 4SD",
+        "region": null,
+        "supplierID": {{newId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // Accessing a passed variable in the next request
+        const newId = bru.getVar("newId");
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

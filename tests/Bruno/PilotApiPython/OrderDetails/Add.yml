@@ -1,0 +1,44 @@
+info:
+  name: Add
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{Host}}{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+        "discount": 0,
+        "orderID": 10248,
+        "productID": 12,
+        "quantity": 99,
+        "unitPrice": 99.0000
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Example: Storing an extracted token or ID from a JSON response
+        const jsonData = res.getBody();
+        bru.setVar("newId", jsonData.id);
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should return id", function () {
+          const resBody = res.getBody();
+          
+          expect(resBody).to.have.property("id");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

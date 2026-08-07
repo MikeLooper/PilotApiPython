@@ -1,0 +1,49 @@
+info:
+  name: Add
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{Host}}{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+        "categoryID": 1,
+        "discontinued": true,
+        "productID": -1,
+        "productName": "Test Product",
+        "quantityPerUnit": "lots",
+        "reorderLevel": 11,
+        "supplierID": 1,
+        "unitPrice": 23.45,
+        "unitsInStock": 12,
+        "unitsOnOrder": 34
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Example: Storing an extracted token or ID from a JSON response
+        const jsonData = res.getBody();
+        bru.setVar("newId", jsonData.id);
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should return id", function () {
+          const resBody = res.getBody();
+          
+          expect(resBody).to.have.property("id");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,39 @@
+info:
+  name: Update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{Host}}{{controller}}/update"
+  body:
+    type: json
+    data: |-
+      {
+        "address": "123 Main Street",
+        "city": "Test City",
+        "companyName": "Test Company 2",
+        "contactName": "Test Tester 2",
+        "contactTitle": "Tester 2",
+        "country": "Germany",
+        "customerID": "XYZPD",
+        "fax": "030-0076545",
+        "phone": "030-0074321",
+        "postalCode": "12209",
+        "region": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,51 @@
+info:
+  name: Add
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{Host}}{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+        "address": "49 Gilbert St.",
+        "city": "London",
+        "companyName": "Test Company",
+        "contactName": "Test Name",
+        "contactTitle": "Test Title",
+        "country": "UK",
+        "fax": null,
+        "homePage": null,
+        "phone": "(171) 555-2222",
+        "postalCode": "EC1 4SD",
+        "region": null,
+        "supplierID": -1
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Example: Storing an extracted token or ID from a JSON response
+        const jsonData = res.getBody();
+        bru.setVar("newId", jsonData.id);
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should return id", function () {
+          const resBody = res.getBody();
+          
+          expect(resBody).to.have.property("id");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
