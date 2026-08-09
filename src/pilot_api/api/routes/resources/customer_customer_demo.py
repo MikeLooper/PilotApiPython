@@ -62,6 +62,7 @@ def add_customer_customer_demo(
 
 @router.put(
     "/customer-customer-demo/update",
+    status_code=204,
     response_model=None,
     responses={400: {"model": ProblemDetailsDto}},
 )
@@ -69,7 +70,7 @@ def update_customer_customer_demo(
     payload: CustomerCustomerDemoDto,
     api_version: str | None = Depends(get_api_version),
     session: Session = Depends(get_session),
-) -> dict[str, str]:
+) -> None:
     _ = api_version
     create_service(
         session,
@@ -77,7 +78,6 @@ def update_customer_customer_demo(
         CustomerCustomerDemoDto,
         ["customerID", "customerTypeID"],
     ).update(payload)
-    return {}
 
 
 @router.delete(

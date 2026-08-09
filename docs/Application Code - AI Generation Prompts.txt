@@ -37,18 +37,27 @@ Update this application to use these database attributes to connect to the datab
 Make code or configuration changes necessary to enable use of Northwind database with this API code.
 Do not make any changes to the database."
 
-
-
-
-
 5.
-
 "Update the application port from 8080 to 57601."
+
 "Add the ability for the application port to be overridden from an environment variable."
-	> The port now reads from the SERVER_PORT environment variable, falling back to 57601 if it's not set.
 "Update the README to include instructions on how to override the application port."
 
-"Add a second database connection for PostgreSQL, while keeping the ability to connect to SQL Server.  Include the ability to switch back and forth based upon a configuration setting.  Update the README with instructions on how to switch between the two databases."
+"Add a second database connection for PostgreSQL, while keeping the ability to connect to SQL Server.
+Include the ability to switch back and forth based upon a configuration setting.  
+The database connection inormation is:
+	- Database Name = northwind
+	- ConnectTimeout = 30
+	- Host = localhost
+	- Password = <DevUser password>
+	- Port = 5432
+	- UserName = DevUser
+	- Schema = pilot
+Update the README with instructions on how to switch between the two databases."
 
 11.
+
+
+
+python -m uvicorn pilot_api.main:app --reload --app-dir src
 

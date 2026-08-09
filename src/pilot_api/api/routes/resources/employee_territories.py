@@ -62,6 +62,7 @@ def add_employee_territory(
 
 @router.put(
     "/employee-territories/update",
+    status_code=204,
     response_model=None,
     responses={400: {"model": ProblemDetailsDto}},
 )
@@ -69,7 +70,7 @@ def update_employee_territory(
     payload: EmployeeTerritoriesDto,
     api_version: str | None = Depends(get_api_version),
     session: Session = Depends(get_session),
-) -> dict[str, str]:
+) -> None:
     _ = api_version
     create_service(
         session,
@@ -77,7 +78,6 @@ def update_employee_territory(
         EmployeeTerritoriesDto,
         ["employeeID", "territoryID"],
     ).update(payload)
-    return {}
 
 
 @router.delete(

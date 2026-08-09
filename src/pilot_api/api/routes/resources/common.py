@@ -63,6 +63,7 @@ def register_single_key_routes(
 
     @router.put(
         f"/{prefix}/update",
+        status_code=204,
         response_model=None,
         responses={400: {"model": ProblemDetailsDto}},
     )
@@ -70,10 +71,9 @@ def register_single_key_routes(
         payload: dto_type,
         api_version: str | None = Depends(get_api_version),
         session: Session = Depends(get_session),
-    ) -> dict[str, str]:
+    ) -> None:
         _ = api_version
         create_service(session, model_type, dto_type, [key_name]).update(payload)
-        return {}
 
     @router.delete(
         f"/{prefix}/delete/{{{path_param_name}}}",

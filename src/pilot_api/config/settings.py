@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     log_json: bool = True
     show_about_config: bool = False
 
+    db_backend: str = "sqlserver"
     db_name: str = "NorthWind"
     db_connect_timeout: int = 30
     db_host: str = "local_mssql"
@@ -31,11 +32,48 @@ class Settings(BaseSettings):
     database_url: str | None = None
 
     @property
+    def resolved_db_name(self) -> str:
+        if self.db_backend.lower() == "postgresql":
+            return "northwind"
+        return self.db_name
+
+    @property
+    def resolved_db_host(self) -> str:
+        if self.db_backend.lower() == "postgresql":
+            return "localhost" if self.db_host == "local_mssql" else self.db_host
+        return self.db_host
+
+    @property
+    def resolved_db_port(self) -> int:
+        if self.db_backend.lower() == "postgresql":
+            return 5432 if self.db_port == 1433 else self.db_port
+        return self.db_port
+
+    @property
+    def resolved_db_schema(self) -> str:
+        if self.db_backend.lower() == "postgresql":
+            return "pilot"
+        return self.db_schema
+
+    @property
+    def resolved_db_user(self) -> str:
+        if self.db_backend.lower() == "postgresql":
+            return self.db_user or "DevUser"
+        return self.db_user
+
+    @property
     def resolved_database_url(self) -> str:
         if self.database_url:
             return self.database_url
 
         encoded_password = quote_plus(self.db_password)
+
+        if self.db_backend.lower() == "postgresql":
+            return (
+                f"postgresql+psycopg://{self.resolved_db_user}:{encoded_password}@{self.resolved_db_host}:{self.resolved_db_port}/{self.resolved_db_name}"
+                f"?connect_timeout={self.db_connect_timeout}&options=-csearch_path%3D{self.resolved_db_schema}"
+            )
+
         driver = quote_plus(self.db_driver)
         trust_server_certificate = "yes" if self.db_trust_server_certificate else "no"
         return (
@@ -47,3 +85,7 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
+
+def clear_settings_cache() -> None:
+    get_settings.cache_clear()

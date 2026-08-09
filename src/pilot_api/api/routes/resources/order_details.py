@@ -44,6 +44,7 @@ def add_order_detail(
 
 @router.put(
     "/order-details/update",
+    status_code=204,
     response_model=None,
     responses={400: {"model": ProblemDetailsDto}},
 )
@@ -51,10 +52,9 @@ def update_order_detail(
     payload: OrderDetailsDto,
     api_version: str | None = Depends(get_api_version),
     session: Session = Depends(get_session),
-) -> dict[str, str]:
+) -> None:
     _ = api_version
     create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).update(payload)
-    return {}
 
 
 @router.delete(

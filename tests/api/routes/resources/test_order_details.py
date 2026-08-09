@@ -20,7 +20,7 @@ def test_order_details_crud_contract(client: TestClient) -> None:
     assert get_response.status_code == 200
 
     update_response = client.put("/order-details/update", json=payload, headers={"ApiVersion": "1"})
-    assert update_response.status_code == 200
+    assert update_response.status_code == 204
 
     delete_response = client.delete(
         "/order-details/delete/product/1/order/1001",

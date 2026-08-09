@@ -53,6 +53,7 @@ To avoid unintended schema changes, the application does not execute automatic D
 ## Setup
 
 1. Create and activate a Python environment.
+
 2. Install dependencies:
 
 ```bash
@@ -65,9 +66,15 @@ python -m pip install -e .[dev]
 copy .env.example .env
 ```
 
-4. Update `.env` with SQL Server attributes:
+4. Update `.env` with database attributes:
+
+- SQL Server
 
 ```bash
+APP_NAME=PilotApiPython
+APP_VERSION=1.0.0
+LOG_LEVEL=INFO
+LOG_JSON=true
 DB_NAME=NorthWind
 DB_CONNECT_TIMEOUT=30
 DB_HOST=localhost
@@ -75,22 +82,72 @@ DB_PASSWORD=<DevUser password>
 DB_PORT=1433
 DB_SCHEMA=dbo
 DB_USER=DevUser
+DB_DRIVER=ODBC Driver 18 for SQL Server
+DB_TRUST_SERVER_CERTIFICATE=true
+# Optional full override:
+# DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
+SHOW_ABOUT_CONFIG=false
 ```
+
+- PostgreSQL
+
+```bash
+APP_NAME=PilotApiPython
+APP_VERSION=1.0.0
+LOG_LEVEL=INFO
+LOG_JSON=true
+DB_BACKEND=postgresql
+DB_NAME=northwind
+DB_CONNECT_TIMEOUT=30
+DB_HOST=localhost
+DB_PASSWORD=<DevUser password>
+DB_PORT=5432
+DB_SCHEMA=pilot
+DB_USER=DevUser
+DB_TRUST_SERVER_CERTIFICATE=true
+# Optional full override:
+# DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
+SHOW_ABOUT_CONFIG=false
+```
+
+5. Environment Variable Overrides
 
 Use `DB_HOST=local_mssql` only when the API process runs inside the same Docker network where that service name exists.
 
 You can also set `DATABASE_URL` directly to override attribute-based construction.
 
+The application listens on port `57601` by default.
+
+The database backend can also be switched with `DB_BACKEND`:
+
+- `DB_BACKEND=sqlserver` uses the existing SQL Server connection settings.
+- `DB_BACKEND=postgresql` uses the PostgreSQL connection profile with:
+  - database name: `northwind`
+  - host: `localhost`
+  - port: `5432`
+  - schema: `pilot`
+  - user: `DevUser`
+
+Example:
+
+```bash
+$env:DB_BACKEND = "postgresql"
+```
+
 ## Run
+
+Start the FastAPI application with your preferred ASGI server. For example, if you still have Uvicorn installed locally, you can run:
 
 ```bash
 python -m uvicorn pilot_api.main:app --reload --app-dir src
 ```
 
+If you are using a different ASGI host, launch the app through that runtime instead.
+
 API docs:
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:57601/docs`
+- ReDoc: `http://localhost:57601/redoc`
 
 ## Migrations
 

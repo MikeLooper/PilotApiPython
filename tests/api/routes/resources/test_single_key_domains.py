@@ -144,7 +144,7 @@ def test_single_key_domain_crud_contract(client: TestClient, case: dict) -> None
     assert get_response.status_code == 200
 
     update_response = client.put(f"{case['base']}/update", json=case["payload"], headers={"ApiVersion": "1"})
-    assert update_response.status_code == 200
+    assert update_response.status_code == 204
 
     delete_response = client.delete(
         f"{case['base']}/delete/{case['id_value']}",
