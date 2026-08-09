@@ -1,0 +1,37 @@
+info:
+  name: About_NoDetails
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{Host}}about?show-details=false"
+  params:
+    - name: show-details
+      value: "false"
+      type: query
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should return object", function () {
+          const resBody = res.getBody();
+          
+          expect(resBody).to.have.property("apiVersion");
+          expect(resBody).to.have.property("buildVersion");
+          expect(resBody).to.have.property("deployDate");
+          expect(resBody).to.have.property("name");
+          expect(resBody.name).to.contain("PilotApi");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

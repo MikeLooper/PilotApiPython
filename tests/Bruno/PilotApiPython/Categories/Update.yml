@@ -1,0 +1,37 @@
+info:
+  name: Update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{Host}}{{controller}}/update"
+  body:
+    type: json
+    data: |-
+      {
+        "categoryID": {{newId}},
+        "categoryName": "Test Cat Update",
+        "description": "Test Category Updated",
+        "picture": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // Accessing a passed variable in the next request
+        // const newId = bru.getVar("newId");
+        // bru.setVar("newId", newId);
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

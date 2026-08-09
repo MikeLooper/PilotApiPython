@@ -1,0 +1,37 @@
+info:
+  name: Update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{Host}}{{controller}}/update"
+  body:
+    type: json
+    data: |-
+      {
+        "discount": 0,
+        "orderID": 10248,
+        "productID": 12,
+        "quantity": 98,
+        "unitPrice": 98.0000
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // Accessing a passed variable in the next request
+        const newId = bru.getVar("newId");
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

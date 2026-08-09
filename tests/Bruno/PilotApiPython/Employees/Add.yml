@@ -1,0 +1,57 @@
+info:
+  name: Add
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{Host}}{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+          "address": "507 - 20th Ave. E.Apt. 2A",
+          "birthDate": "1948-12-08T00:00:00",
+          "city": "Test City",
+          "country": "USA",
+          "employeeID": -1,
+          "extension": "5467",
+          "firstName": "Test First",
+          "hireDate": "1992-05-01T00:00:00",
+          "homePhone": "(206) 555-9857",
+          "lastName": "Test Last",
+          "notes": "This is a test Item",
+          "photo": null,
+          "photoPath": "http://accweb/emmployees/test.bmp",
+          "postalCode": "98122",
+          "region": "WA",
+          "reportsTo": 2,
+          "title": "Test Position",
+          "titleOfCourtesy": "Mr."
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Example: Storing an extracted token or ID from a JSON response
+        const jsonData = res.getBody();
+        bru.setVar("newId", jsonData.id);
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should return id", function () {
+          const resBody = res.getBody();
+          
+          expect(resBody).to.have.property("id");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

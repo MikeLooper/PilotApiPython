@@ -1,0 +1,46 @@
+info:
+  name: Update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{Host}}{{controller}}/update"
+  body:
+    type: json
+    data: |-
+      {
+        "customerID": "VINET",
+        "employeeID": 5,
+        "freight": 32.3800,
+        "orderDate": "1996-07-04T00:00:00",
+        "orderID": {{newId}},
+        "requiredDate": "1996-08-01T00:00:00",
+        "shipAddress": "123 Main Street",
+        "shipCity": "Test City",
+        "shipCountry": "France",
+        "shipName": "Test Name Updated",
+        "shippedDate": "1996-07-16T00:00:00",
+        "shipPostalCode": "51100",
+        "shipRegion": null,
+        "shipVia": 3
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // Accessing a passed variable in the next request
+        const newId = bru.getVar("newId");
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
