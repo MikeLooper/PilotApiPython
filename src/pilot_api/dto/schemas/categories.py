@@ -4,7 +4,7 @@ from pilot_api.dto.schemas.base import DtoBase, coerce_number
 
 
 class CategoriesDto(DtoBase):
-    categoryID: int
+    categoryID: int | None = None
     categoryName: str | None
     description: str | None = None
     picture: str | None = None

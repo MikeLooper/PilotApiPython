@@ -14,7 +14,6 @@ http:
         "employeeID": 5,
         "freight": 32.3800,
         "orderDate": "1996-07-04T00:00:00",
-        "orderID": 10248,
         "requiredDate": "1996-08-01T00:00:00",
         "shipAddress": "123 Main Street",
         "shipCity": "Test City",

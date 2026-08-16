@@ -10,9 +10,8 @@ http:
     type: json
     data: |-
       {
-        "companyname": "Test Shipper",
-        "phone": "(503) 555-9831",
-        "shipperID": -1
+        "companyName": "Test Shipper",
+        "phone": "(503) 555-9831"
       }
   auth: inherit
 

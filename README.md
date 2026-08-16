@@ -116,7 +116,7 @@ Use `DB_HOST=local_mssql` only when the API process runs inside the same Docker 
 
 You can also set `DATABASE_URL` directly to override attribute-based construction.
 
-The application listens on port `57601` by default.
+The application listens on port `8000` by default, but this can be overrriden.
 
 The database backend can also be switched with `DB_BACKEND`:
 
@@ -144,10 +144,18 @@ python -m uvicorn pilot_api.main:app --reload --app-dir src
 
 If you are using a different ASGI host, launch the app through that runtime instead.
 
+The above will use port 8000 by default.
+
+If you would like to specify the host name and port, use the following:
+
+```bash
+python -m uvicorn pilot_api.main:app --reload --app-dir src --port 53060 --host localhost
+```
+
 API docs:
 
-- Swagger UI: `http://localhost:57601/docs`
-- ReDoc: `http://localhost:57601/redoc`
+- Swagger UI: `http://localhost:53060/docs`
+- ReDoc: `http://localhost:53060/redoc`
 
 ## Migrations
 
@@ -209,3 +217,41 @@ Then commit the updated submodule pointer in this repository:
 git add shared/SharedModule .gitmodules
 git commit -m "Update shared submodule"
 ```
+
+## Development
+
+### VS Code
+
+To automatically run this application and launch the API UI, create a .vscode\launch.json file with the follwing contents:
+```
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Pilot API",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "pilot_api.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "53060"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "Uvicorn running on http://\\S+:(\\d+)",
+                "uriFormat": "http://localhost:%s/docs"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
+```
+

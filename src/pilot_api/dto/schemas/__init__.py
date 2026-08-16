@@ -6,7 +6,6 @@ from pilot_api.dto.schemas.categories import CategoriesDto
 from pilot_api.dto.schemas.customer_customer_demo import CustomerCustomerDemoDto
 from pilot_api.dto.schemas.customer_demographics import CustomerDemographicsDto
 from pilot_api.dto.schemas.customers import CustomersDto
-from pilot_api.dto.schemas.data_connection_configuration import DataConnectionConfigurationDto
 from pilot_api.dto.schemas.data_source_configuration import DataSourceConfigurationDto
 from pilot_api.dto.schemas.employee_territories import EmployeeTerritoriesDto
 from pilot_api.dto.schemas.employees import EmployeesDto
@@ -29,7 +28,6 @@ __all__ = [
     "CustomerCustomerDemoDto",
     "CustomerDemographicsDto",
     "CustomersDto",
-    "DataConnectionConfigurationDto",
     "DataSourceConfigurationDto",
     "DtoBase",
     "EmployeeTerritoriesDto",

@@ -6,7 +6,7 @@ from pilot_api.dto.schemas.base import DtoBase, coerce_number
 class ShippersDto(DtoBase):
     companyName: str | None
     phone: str | None = None
-    shipperID: int
+    shipperID: int | None = None
 
     @field_validator("shipperID", mode="before")
     @classmethod

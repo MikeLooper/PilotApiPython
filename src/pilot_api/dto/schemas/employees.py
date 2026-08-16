@@ -10,7 +10,7 @@ class EmployeesDto(DtoBase):
     birthDate: datetime | None = None
     city: str | None = None
     country: str | None = None
-    employeeID: int
+    employeeID: int | None = None
     extension: str | None = None
     firstName: str | None
     hireDate: datetime | None = None

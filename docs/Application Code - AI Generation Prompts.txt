@@ -56,8 +56,20 @@ The database connection inormation is:
 Update the README with instructions on how to switch between the two databases."
 
 11.
+Calling the `about` endpoint while passing true to the `show_details` parameter results in null configuration settings:
+`{
+  "apiVersion": "1.0.0",
+  "applicationConfiguration": {
+    "dataSources": null,
+    "openApi": null,
+    "active": true
+  },
+  "buildVersion": "1.0.0",
+  "deployDate": "2026-08-16T17:18:07.162132+00:00",
+  "name": "PilotApiPython"
+}`.
+Correct the application, so the configuration settings reflact the application configuration settings.
 
 
-
-python -m uvicorn pilot_api.main:app --reload --app-dir src
+...
 
