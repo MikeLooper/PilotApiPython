@@ -1,5 +1,5 @@
 name: Docker - PostgreSQL
 variables:
   - name: Host
-    value: http://localhost:57701/
+    value: http://localhost:54601/
     description: ""
