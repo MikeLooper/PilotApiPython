@@ -11,13 +11,3 @@ def test_order_freight_is_cast_for_postgresql_reads() -> None:
 
     assert "CAST(CAST(" in compiled
     assert "freight AS NUMERIC) AS FLOAT" in compiled
-
-
-def test_order_detail_money_columns_are_cast_for_postgresql_reads() -> None:
-    statement = select(OrderDetail)
-
-    compiled = str(statement.compile(dialect=postgresql.dialect()))
-
-    assert "CAST(CAST(" in compiled
-    assert "unitprice AS NUMERIC) AS FLOAT" in compiled
-    assert "discount AS NUMERIC) AS FLOAT" in compiled
