@@ -1,7 +1,8 @@
-from sqlalchemy import Boolean, Float, Integer, SmallInteger, String
+from sqlalchemy import Boolean, Integer, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from pilot_api.model.base import Base
+from pilot_api.model.types import CrossDatabaseFloat
 
 
 class Product(Base):
@@ -12,7 +13,7 @@ class Product(Base):
     supplierID: Mapped[int | None] = mapped_column(Integer, nullable=True)
     categoryID: Mapped[int | None] = mapped_column(Integer, nullable=True)
     quantityPerUnit: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    unitPrice: Mapped[float | None] = mapped_column(Float, nullable=True)
+    unitPrice: Mapped[float | None] = mapped_column(CrossDatabaseFloat, nullable=True)
     unitsInStock: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     unitsOnOrder: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     reorderLevel: Mapped[int] = mapped_column(SmallInteger, nullable=False)

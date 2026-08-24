@@ -20,8 +20,7 @@ http:
         "homePage": null,
         "phone": "(171) 555-2222",
         "postalCode": "EC1 4SD",
-        "region": null,
-        "supplierID": -1
+        "region": null
       }
   auth: inherit
 

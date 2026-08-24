@@ -10,7 +10,6 @@ http:
     type: json
     data: |-
       {
-        "categoryID": -1,
         "categoryName": "Test Cat",
         "description": "Test Category",
         "picture": null

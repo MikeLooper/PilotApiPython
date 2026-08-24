@@ -15,7 +15,7 @@ class SuppliersDto(DtoBase):
     phone: str | None = None
     postalCode: str | None = None
     region: str | None = None
-    supplierID: int
+    supplierID: int | None = None
 
     @field_validator("supplierID", mode="before")
     @classmethod

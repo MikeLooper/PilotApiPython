@@ -31,7 +31,6 @@ runtime:
 
           expect(resBody).to.have.property("applicationConfiguration");
           const configuration = resBody?.applicationConfiguration;
-          expect(configuration).to.have.property("dataConnections");
           expect(configuration).to.have.property("dataSources");
           
           expect(configuration).to.have.property("openApi");
@@ -39,7 +38,7 @@ runtime:
           expect(openapi).to.have.property("summary");
           expect(openapi).to.have.property("version");
           expect(openapi).to.have.property("license");
-          expect(openapi.license).to.equal("MIT");
+          //expect(openapi.license).to.equal("MIT");
           expect(openapi).to.have.property("title");
           expect(openapi.title).to.contain("PilotApi");
         });

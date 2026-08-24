@@ -6,7 +6,7 @@ from pilot_api.dto.schemas.base import DtoBase, coerce_number
 class ProductsDto(DtoBase):
     categoryID: int | None = None
     discontinued: bool
-    productID: int
+    productID: int | None = None
     productName: str | None
     quantityPerUnit: str | None = None
     reorderLevel: int

@@ -9,13 +9,14 @@ class Settings(BaseSettings):
 
     app_name: str = "PilotApiPython"
     app_version: str = "1.0.0"
+    app_deploy_date: str | None = None
     app_description: str = (
         "A proof of concept API to explore best-practices and new ideas, based upon the "
         "Northwind database."
     )
     log_level: str = "INFO"
     log_json: bool = True
-    show_about_config: bool = False
+    show_about_config: bool = True
 
     db_backend: str = "sqlserver"
     db_name: str = "NorthWind"

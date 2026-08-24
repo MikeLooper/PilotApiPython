@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, Integer, String
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from pilot_api.model.base import Base
+from pilot_api.model.types import CrossDatabaseFloat
 
 
 class Order(Base):
@@ -16,7 +17,7 @@ class Order(Base):
     requiredDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     shippedDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     shipVia: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    freight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    freight: Mapped[float | None] = mapped_column(CrossDatabaseFloat, nullable=True)
     shipName: Mapped[str | None] = mapped_column(String(255), nullable=True)
     shipAddress: Mapped[str | None] = mapped_column(String(255), nullable=True)
     shipCity: Mapped[str | None] = mapped_column(String(255), nullable=True)

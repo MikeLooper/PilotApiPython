@@ -12,7 +12,6 @@ http:
       {
         "categoryID": 1,
         "discontinued": true,
-        "productID": -1,
         "productName": "Test Product",
         "quantityPerUnit": "lots",
         "reorderLevel": 11,

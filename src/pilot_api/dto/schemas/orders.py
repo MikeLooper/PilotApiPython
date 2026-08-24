@@ -10,7 +10,7 @@ class OrdersDto(DtoBase):
     employeeID: int | None = None
     freight: float | None = None
     orderDate: datetime | None = None
-    orderID: int
+    orderID: int | None = None
     requiredDate: datetime | None = None
     shipAddress: str | None = None
     shipCity: str | None = None

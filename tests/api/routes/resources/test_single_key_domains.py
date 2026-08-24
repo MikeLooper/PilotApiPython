@@ -153,9 +153,22 @@ def test_single_key_domain_crud_contract(client: TestClient, case: dict) -> None
     assert delete_response.status_code == 204
 
 
-def test_single_key_domain_validation_failure_returns_problem_details(client: TestClient) -> None:
-    invalid_payload = {"categoryName": "Missing categoryID"}
-    response = client.post("/categories/add", json=invalid_payload, headers={"ApiVersion": "1"})
+def test_identity_key_is_generated_when_category_add_omits_key(client: TestClient) -> None:
+    payload = {
+        "categoryName": "Test Cat",
+        "description": "Test Category",
+        "picture": None,
+    }
+
+    response = client.post("/categories/add", json=payload, headers={"ApiVersion": "1"})
+
+    assert response.status_code == 200
+    assert response.json()["id"] > 0
+
+
+def test_customer_add_requires_customer_id(client: TestClient) -> None:
+    invalid_payload = {"companyName": "Missing customerID"}
+    response = client.post("/customers/add", json=invalid_payload, headers={"ApiVersion": "1"})
 
     assert response.status_code == 400
     body = response.json()
