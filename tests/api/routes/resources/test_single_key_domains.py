@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 ENTITY_CASES = [
     {
         "name": "categories",
-        "base": "/categories",
+        "base": "/v1/categories",
         "id_value": 1,
         "payload": {
             "categoryID": 1,
@@ -16,7 +16,7 @@ ENTITY_CASES = [
     },
     {
         "name": "customers",
-        "base": "/customers",
+        "base": "/v1/customers",
         "id_value": "ALFKI",
         "payload": {
             "customerID": "ALFKI",
@@ -34,7 +34,7 @@ ENTITY_CASES = [
     },
     {
         "name": "employees",
-        "base": "/employees",
+        "base": "/v1/employees",
         "id_value": 1,
         "payload": {
             "employeeID": 1,
@@ -59,7 +59,7 @@ ENTITY_CASES = [
     },
     {
         "name": "orders",
-        "base": "/orders",
+        "base": "/v1/orders",
         "id_value": 1001,
         "payload": {
             "orderID": 1001,
@@ -80,7 +80,7 @@ ENTITY_CASES = [
     },
     {
         "name": "products",
-        "base": "/products",
+        "base": "/v1/products",
         "id_value": 1,
         "payload": {
             "productID": 1,
@@ -97,7 +97,7 @@ ENTITY_CASES = [
     },
     {
         "name": "shippers",
-        "base": "/shippers",
+        "base": "/v1/shippers",
         "id_value": 1,
         "payload": {
             "shipperID": 1,
@@ -107,7 +107,7 @@ ENTITY_CASES = [
     },
     {
         "name": "suppliers",
-        "base": "/suppliers",
+        "base": "/v1/suppliers",
         "id_value": 1,
         "payload": {
             "supplierID": 1,
@@ -160,7 +160,7 @@ def test_identity_key_is_generated_when_category_add_omits_key(client: TestClien
         "picture": None,
     }
 
-    response = client.post("/categories/add", json=payload, headers={"ApiVersion": "1"})
+    response = client.post("/v1/categories/add", json=payload, headers={"ApiVersion": "1"})
 
     assert response.status_code == 200
     assert response.json()["id"] > 0
@@ -168,7 +168,7 @@ def test_identity_key_is_generated_when_category_add_omits_key(client: TestClien
 
 def test_customer_add_requires_customer_id(client: TestClient) -> None:
     invalid_payload = {"companyName": "Missing customerID"}
-    response = client.post("/customers/add", json=invalid_payload, headers={"ApiVersion": "1"})
+    response = client.post("/v1/customers/add", json=invalid_payload, headers={"ApiVersion": "1"})
 
     assert response.status_code == 400
     body = response.json()
