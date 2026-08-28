@@ -1,0 +1,46 @@
+info:
+  name: Add
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{Host}}v{{version}}/{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+        "address": "123 Main Street",
+        "city": "Test City",
+        "companyName": "Test Company",
+        "contactName": "Test Tester",
+        "contactTitle": "Tester",
+        "country": "Germany",
+        "customerID": "XYZPD",
+        "fax": "030-0076545",
+        "phone": "030-0074321",
+        "postalCode": "12209",
+        "region": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return success", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should return id", function () {
+          const resBody = res.getBody();
+          
+          expect(resBody).to.have.property("id");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
