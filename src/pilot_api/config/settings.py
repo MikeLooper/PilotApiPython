@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     database_url: str | None = None
 
     @property
+    def resolved_db_display_name(self) -> str:
+        if self.db_backend.lower() == "postgresql":
+            return "PostgreSQL"
+        return "SQL Server"
+
+    @property
     def resolved_db_name(self) -> str:
         if self.db_backend.lower() == "postgresql":
             return "northwind"

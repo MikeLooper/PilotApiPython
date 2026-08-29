@@ -49,6 +49,6 @@ class SystemService:
             apiVersion=self.settings.app_version,
             buildVersion=self.settings.app_version,
             deployDate=self.settings.app_deploy_date or datetime.now(UTC).isoformat(),
-            name=self.settings.app_name,
+            name=f"{self.settings.app_name} ({self.settings.resolved_db_display_name})",
             applicationConfiguration=config,
         )

@@ -8,4 +8,4 @@ def test_system_endpoints(client: TestClient) -> None:
 
     about_response = client.get("/about?show-details=false", headers={"ApiVersion": "1"})
     assert about_response.status_code == 200
-    assert about_response.json()["name"] == "PilotApiPython"
+    assert about_response.json()["name"].startswith("PilotApiPython (")
