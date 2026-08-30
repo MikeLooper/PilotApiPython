@@ -1,6 +1,7 @@
 import logging
+from http import HTTPStatus
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -29,6 +30,14 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
         return _problem_response(400, "Bad Request", str(exc), str(request.url.path))
+
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+        try:
+            title = HTTPStatus(exc.status_code).phrase
+        except ValueError:
+            title = "Error"
+        return _problem_response(exc.status_code, title, str(exc.detail), str(request.url.path))
 
     @app.exception_handler(Exception)
     async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:

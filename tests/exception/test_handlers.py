@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from pilot_api.exception.errors import BadRequestError
@@ -40,3 +40,43 @@ def test_exception_handler_returns_problem_details_for_validation_error() -> Non
     body = response.json()
     assert body["title"] == "Bad Request"
     assert body["status"] == 400
+
+
+def test_exception_handler_returns_problem_details_for_http_exception() -> None:
+    app = FastAPI()
+    register_exception_handlers(app)
+
+    @app.get("/raise-http-exception")
+    def raise_http_exception() -> None:
+        raise HTTPException(status_code=404, detail="Widget not found")
+
+    client = TestClient(app)
+
+    response = client.get("/raise-http-exception")
+
+    assert response.status_code == 404
+    body = response.json()
+    assert body["title"] == "Not Found"
+    assert body["detail"] == "Widget not found"
+    assert body["status"] == 404
+    assert body["instance"] == "/raise-http-exception"
+
+
+def test_exception_handler_returns_problem_details_for_unhandled_exception() -> None:
+    app = FastAPI()
+    register_exception_handlers(app)
+
+    @app.get("/raise-unhandled")
+    def raise_unhandled() -> None:
+        raise ValueError("kaboom")
+
+    client = TestClient(app, raise_server_exceptions=False)
+
+    response = client.get("/raise-unhandled")
+
+    assert response.status_code == 500
+    body = response.json()
+    assert body["title"] == "Internal Server Error"
+    assert body["detail"] == "Unexpected server error."
+    assert body["status"] == 500
+    assert body["instance"] == "/raise-unhandled"
