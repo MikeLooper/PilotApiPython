@@ -15,6 +15,12 @@ class Settings(BaseSettings):
         "A proof of concept API to explore best-practices and new ideas, based upon the "
         "Northwind database."
     )
+    app_summary: str = "Proof of concept API for the Northwind database."
+    app_contact_name: str = "Michael Looper"
+    app_contact_email: str = "MikelLooper@gmail.com"
+    app_contact_url: str = "https://github.com/MikeLooper"
+    app_license_name: str = "MIT"
+    app_license_url: str = "https://opensource.org"
     log_level: str = "INFO"
     log_json: bool = True
     show_about_config: bool = True

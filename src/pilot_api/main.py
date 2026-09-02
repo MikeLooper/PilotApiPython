@@ -33,8 +33,18 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title=settings.app_name,
-        version=settings.app_version,
-        description=settings.app_description,
+        version=f"Version: {settings.app_version}",
+        description=f"Description: {settings.app_description}",
+        summary=f"Summary: {settings.app_summary}",
+        contact={
+            "name": f"Contact: {settings.app_contact_name}",
+            "email": settings.app_contact_email,
+            "url": settings.app_contact_url,
+        },
+        license_info={
+            "name": f"License: {settings.app_license_name}",
+            "url": settings.app_license_url,
+        },
         lifespan=lifespan,
     )
     app.add_middleware(RequestContextMiddleware)
