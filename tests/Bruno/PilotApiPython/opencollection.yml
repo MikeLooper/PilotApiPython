@@ -45,10 +45,8 @@ request:
       description: Base URL of the local Security server used to obtain a bearer token.
     - name: IdpHostRealm
       value: local-realm
-      description: ""
     - name: IdpHostClientId
       value: local-client
-      description: ""
     - name: IdpHostUsername
       value: working_admin_user
       description: Admin role user - allowed GET, POST, PUT, DELETE on all domain endpoints.

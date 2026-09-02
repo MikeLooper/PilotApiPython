@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from pilot_api.api.dependencies import get_session
@@ -12,11 +12,13 @@ router = APIRouter(tags=["OrderDetails"])
 
 @router.get("/order-details/get-all", response_model=list[OrderDetailsDto])
 def get_order_details_all(
+    page: int = Query(default=0, ge=0),
+    pageSize: int = Query(default=20, ge=1),
     api_version: str | None = Depends(get_api_version),
     session: Session = Depends(get_session),
 ) -> list[OrderDetailsDto]:
     _ = api_version
-    return create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).get_all()
+    return create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).get_all(page, pageSize)
 
 
 @router.get("/order-details/get/product/{productId}/order/{orderId}", response_model=OrderDetailsDto)

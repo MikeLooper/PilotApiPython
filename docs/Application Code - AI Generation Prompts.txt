@@ -73,6 +73,14 @@ Calling the `about` endpoint while passing true to the `show_details` parameter 
 }`.
 Correct the application, so the configuration settings reflact the application configuration settings.
 
+12.
+Update the GetAll endpoints to add pagination, with two optional query parameters:
+- `page` = the target page index.  1-based, meaning the first page is 1.
+	- Default: 0
+- `pageSize` = how many items return per page.
+	- Default: 20
+If `page` = 0, do not use paging - return all rows.
+This pagination will control how data is retieved from the database.
 
-...
+
 

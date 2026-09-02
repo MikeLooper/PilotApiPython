@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from pilot_api.api.dependencies import get_session
@@ -12,6 +12,8 @@ router = APIRouter(tags=["EmployeeTerritories"])
 
 @router.get("/employee-territories/get-all", response_model=list[EmployeeTerritoriesDto])
 def get_employee_territories_all(
+    page: int = Query(default=0, ge=0),
+    pageSize: int = Query(default=20, ge=1),
     api_version: str | None = Depends(get_api_version),
     session: Session = Depends(get_session),
 ) -> list[EmployeeTerritoriesDto]:
@@ -21,7 +23,7 @@ def get_employee_territories_all(
         EmployeeTerritory,
         EmployeeTerritoriesDto,
         ["employeeID", "territoryID"],
-    ).get_all()
+    ).get_all(page, pageSize)
 
 
 @router.get(
