@@ -31,7 +31,7 @@ def get_order_detail(
     return create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).get_one(keys)
 
 
-@router.post("/order-details/add", response_model=AddResponseIntDto)
+@router.post("/order-details/add", response_model=AddResponseIntDto, status_code=201)
 def add_order_detail(
     payload: OrderDetailsDto,
     api_version: str | None = Depends(get_api_version),

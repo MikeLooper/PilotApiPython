@@ -27,6 +27,7 @@ This repository now includes a production-oriented FastAPI implementation genera
 - `src/pilot_api/model`: SQLAlchemy entities and domain objects
 - `src/pilot_api/exception`: custom errors and global exception handlers
 - `src/pilot_api/validation`: header and request validation helpers
+- `src/pilot_api/security`: JWT authentication, role-based authorization, and the `SecurityHelper` that centralizes both
 - `alembic`: migration configuration and initial schema
 - `tests`: API and service-layer tests
 
@@ -87,6 +88,11 @@ DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
 SHOW_ABOUT_CONFIG=false
+SECURITY_ACTIVE=true
+IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_REALM=local-realm
+IDENTITY_PROVIDER_CLIENT_ID=local-client
+IDENTITY_PROVIDER_AUDIENCE=
 ```
 
 - PostgreSQL
@@ -108,6 +114,11 @@ DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
 SHOW_ABOUT_CONFIG=false
+SECURITY_ACTIVE=true
+IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_REALM=local-realm
+IDENTITY_PROVIDER_CLIENT_ID=local-client
+IDENTITY_PROVIDER_AUDIENCE=
 ```
 
 5. Environment Variable Overrides
@@ -169,6 +180,35 @@ Apply migrations:
 
 ```bash
 python -m alembic upgrade head
+```
+
+## Security
+
+All `/v1/...` domain endpoints require a bearer JWT, validated against a self-hosted OAuth2/OIDC identity provider (issuer + JWKS resolved from `IDENTITY_PROVIDER_*` settings). The System endpoints (`/healthcheck`, `/about`) are not protected.
+
+Authorization is role-based. The token's subject is looked up in a mock `UserRoles` table to resolve one of three roles, each permitting a tier of HTTP methods:
+
+| Role | Methods allowed |
+| --- | --- |
+| `read_only_role` | GET, HEAD, OPTIONS, QUERY, TRACE |
+| `read_write_role` | the above, plus PATCH, POST, PUT |
+| `admin_role` | the above, plus DELETE |
+
+Mock users (for local testing): `reader_user`, `working_user`, `working_admin_user`.
+
+`SECURITY_ACTIVE` controls what happens when authentication or authorization fails:
+
+- `true` (default): the request is rejected (`401` if the token is missing/invalid, `403` if the role is insufficient).
+- `false`: the request still proceeds, but the response carries a `Warning` header describing why authentication/authorization did not succeed.
+
+Example: obtain a token from the local dev identity provider, then call a protected endpoint:
+
+```bash
+curl -X POST "http://localhost:55001/realms/local-realm/protocol/openid-connect/token" \
+  -d "grant_type=password&client_id=local-client&username=working_user&password=<password>"
+
+curl "http://localhost:53060/v1/categories/get-all" \
+  -H "Authorization: Bearer <access_token>"
 ```
 
 ## Test

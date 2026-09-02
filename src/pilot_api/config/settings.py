@@ -1,6 +1,7 @@
 from functools import lru_cache
 from urllib.parse import quote_plus
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +32,42 @@ class Settings(BaseSettings):
 
     # Optional full override. If supplied, this value is used as-is.
     database_url: str | None = None
+
+    security_active: bool = True
+
+    identity_provider_base_url: str = "http://local-keycloak:8080"
+    identity_provider_realm: str = "local-realm"
+    identity_provider_client_id: str = "local-client"
+    identity_provider_audience: str | None = None
+    jwks_cache_seconds: int = 3600
+
+    # Optional full overrides. If supplied, these values are used as-is.
+    identity_provider_issuer_url: str | None = None
+    identity_provider_jwks_url: str | None = None
+
+    @field_validator(
+        "identity_provider_audience",
+        "identity_provider_issuer_url",
+        "identity_provider_jwks_url",
+        mode="before",
+    )
+    @classmethod
+    def _blank_to_none(cls, value: str | None) -> str | None:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @property
+    def resolved_issuer_url(self) -> str:
+        if self.identity_provider_issuer_url:
+            return self.identity_provider_issuer_url
+        return f"{self.identity_provider_base_url}/realms/{self.identity_provider_realm}"
+
+    @property
+    def resolved_jwks_url(self) -> str:
+        if self.identity_provider_jwks_url:
+            return self.identity_provider_jwks_url
+        return f"{self.resolved_issuer_url}/protocol/openid-connect/certs"
 
     @property
     def resolved_db_display_name(self) -> str:

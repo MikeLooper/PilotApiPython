@@ -24,3 +24,13 @@ class ConflictError(AppError):
 class BadRequestError(AppError):
     status_code = 400
     title = "Bad Request"
+
+
+class UnauthorizedError(AppError):
+    status_code = 401
+    title = "Unauthorized"
+
+
+class ForbiddenError(AppError):
+    status_code = 403
+    title = "Forbidden"

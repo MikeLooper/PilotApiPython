@@ -11,7 +11,7 @@ def test_order_details_crud_contract(client: TestClient) -> None:
     }
 
     add_response = client.post("/v1/order-details/add", json=payload, headers={"ApiVersion": "1"})
-    assert add_response.status_code == 200
+    assert add_response.status_code == 201
 
     get_response = client.get(
         "/v1/order-details/get/product/1/order/1001",

@@ -44,7 +44,7 @@ def get_customer_customer_demo(
     ).get_one(keys)
 
 
-@router.post("/customer-customer-demo/add", response_model=AddResponseIntDto)
+@router.post("/customer-customer-demo/add", response_model=AddResponseIntDto, status_code=201)
 def add_customer_customer_demo(
     payload: CustomerCustomerDemoDto,
     api_version: str | None = Depends(get_api_version),

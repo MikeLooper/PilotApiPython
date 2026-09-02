@@ -130,7 +130,7 @@ ENTITY_CASES = [
 @pytest.mark.parametrize("case", ENTITY_CASES, ids=[case["name"] for case in ENTITY_CASES])
 def test_single_key_domain_crud_contract(client: TestClient, case: dict) -> None:
     add_response = client.post(f"{case['base']}/add", json=case["payload"], headers={"ApiVersion": "1"})
-    assert add_response.status_code == 200
+    assert add_response.status_code == 201
     assert "id" in add_response.json()
 
     get_all_response = client.get(f"{case['base']}/get-all", headers={"ApiVersion": "1"})
@@ -162,7 +162,7 @@ def test_identity_key_is_generated_when_category_add_omits_key(client: TestClien
 
     response = client.post("/v1/categories/add", json=payload, headers={"ApiVersion": "1"})
 
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert response.json()["id"] > 0
 
 

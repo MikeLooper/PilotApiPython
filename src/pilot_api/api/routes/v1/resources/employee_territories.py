@@ -44,7 +44,7 @@ def get_employee_territory(
     ).get_one(keys)
 
 
-@router.post("/employee-territories/add", response_model=AddResponseIntDto)
+@router.post("/employee-territories/add", response_model=AddResponseIntDto, status_code=201)
 def add_employee_territory(
     payload: EmployeeTerritoriesDto,
     api_version: str | None = Depends(get_api_version),

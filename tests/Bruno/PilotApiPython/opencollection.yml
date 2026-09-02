@@ -14,6 +14,44 @@ config:
         username: ""
         password: ""
       bypassProxy: ""
+
+request:
+  headers:
+    - name: Accept
+      value: application/json
+    - name: ApiVersion
+      value: "1"
+  auth:
+    type: oauth2
+    flow: resource_owner_password_credentials
+    accessTokenUrl: "{{IdpHostBaseUrl}}/realms/{{IdpHostRealm}}/protocol/openid-connect/token"
+    refreshTokenUrl: "{{IdpHostBaseUrl}}/realms/{{IdpHostRealm}}/protocol/openid-connect/token"
+    credentials:
+      clientId: "{{IdpHostClientId}}"
+      placement: body
+    resourceOwner:
+      username: "{{IdpHostUsername}}"
+      password: "{{process.env.IDP_HOST_PASSWORD}}"
+    tokenConfig:
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: true
+      autoRefreshToken: true
+  variables:
+    - name: IdpHostBaseUrl
+      value: http://localhost:55001
+      description: Base URL of the local Security server used to obtain a bearer token.
+    - name: IdpHostRealm
+      value: local-realm
+      description: ""
+    - name: IdpHostClientId
+      value: local-client
+      description: ""
+    - name: IdpHostUsername
+      value: working_admin_user
+      description: Admin role user - allowed GET, POST, PUT, DELETE on all domain endpoints.
 bundled: false
 extensions:
   bruno:
