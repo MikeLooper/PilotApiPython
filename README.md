@@ -186,6 +186,8 @@ python -m alembic upgrade head
 
 All `/v1/...` domain endpoints require a bearer JWT, validated against a self-hosted OAuth2/OIDC identity provider (issuer + JWKS resolved from `IDENTITY_PROVIDER_*` settings). The System endpoints (`/healthcheck`, `/about`) are not protected.
 
+This is reflected in the generated OpenAPI schema: protected endpoints declare a `bearerAuth` requirement, which Swagger UI (`/docs`) shows as a lock icon per operation, with an **Authorize** button to set a bearer token for "Try it out" requests; ReDoc (`/redoc`) shows the same requirement in each operation's details.
+
 Authorization is role-based. The token's subject is looked up in a mock `UserRoles` table to resolve one of three roles, each permitting a tier of HTTP methods:
 
 | Role | Methods allowed |

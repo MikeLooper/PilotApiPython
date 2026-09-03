@@ -2,6 +2,7 @@ import logging
 from functools import lru_cache
 
 from fastapi import Depends, Request, Response
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from pilot_api.config.settings import Settings, get_settings
 from pilot_api.exception.errors import ForbiddenError, UnauthorizedError
@@ -10,6 +11,16 @@ from pilot_api.security.role_repository import UserRoleRepository
 from pilot_api.security.token_validator import TokenValidationError, TokenValidator
 
 logger = logging.getLogger(__name__)
+
+# Declared purely so FastAPI's OpenAPI generation records a `bearerAuth`
+# security scheme and marks dependent routes as requiring it (lock icon in
+# Swagger UI). Token extraction/validation itself still happens in
+# SecurityHelper.enforce, which reads the raw header directly.
+bearer_scheme = HTTPBearer(
+    scheme_name="bearerAuth",
+    description="JWT bearer token issued by the identity provider.",
+    auto_error=False,
+)
 
 _ROLE_RANK = {"read_only_role": 1, "read_write_role": 2, "admin_role": 3}
 
@@ -159,6 +170,7 @@ def clear_security_helper_cache() -> None:
 async def enforce_security(
     request: Request,
     response: Response,
+    _credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     helper: SecurityHelper = Depends(get_security_helper),
 ) -> SecurityContext:
     return await helper.enforce(request, response)
