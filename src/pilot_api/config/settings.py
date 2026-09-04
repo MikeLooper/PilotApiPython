@@ -41,7 +41,13 @@ class Settings(BaseSettings):
 
     security_active: bool = True
 
+    # Reachable directly from this API, for fetching signing keys (e.g. "http://local-keycloak:8080"
+    # when both run on the same Docker network).
     identity_provider_base_url: str = "http://local-keycloak:8080"
+    # Externally-visible base URL, i.e. the one clients use to obtain tokens (e.g.
+    # "http://localhost:55001"). Tokens carry this value as their issuer, so it is what
+    # resolved_public_issuer_url validates against.
+    identity_provider_public_base_url: str | None = "http://localhost:55001"
     identity_provider_realm: str = "local-realm"
     identity_provider_client_id: str = "local-client"
     identity_provider_audience: str | None = None
@@ -49,11 +55,14 @@ class Settings(BaseSettings):
 
     # Optional full overrides. If supplied, these values are used as-is.
     identity_provider_issuer_url: str | None = None
+    identity_provider_public_issuer_url: str | None = None
     identity_provider_jwks_url: str | None = None
 
     @field_validator(
         "identity_provider_audience",
+        "identity_provider_public_base_url",
         "identity_provider_issuer_url",
+        "identity_provider_public_issuer_url",
         "identity_provider_jwks_url",
         mode="before",
     )
@@ -68,6 +77,13 @@ class Settings(BaseSettings):
         if self.identity_provider_issuer_url:
             return self.identity_provider_issuer_url
         return f"{self.identity_provider_base_url}/realms/{self.identity_provider_realm}"
+
+    @property
+    def resolved_public_issuer_url(self) -> str:
+        if self.identity_provider_public_issuer_url:
+            return self.identity_provider_public_issuer_url
+        base_url = self.identity_provider_public_base_url or self.identity_provider_base_url
+        return f"{base_url}/realms/{self.identity_provider_realm}"
 
     @property
     def resolved_jwks_url(self) -> str:

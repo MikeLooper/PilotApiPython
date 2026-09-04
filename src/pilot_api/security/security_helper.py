@@ -155,7 +155,7 @@ def get_security_helper() -> SecurityHelper:
         settings=settings,
         token_validator=TokenValidator(
             jwks_url=settings.resolved_jwks_url,
-            issuer=settings.resolved_issuer_url,
+            issuer=settings.resolved_public_issuer_url,
             audience=settings.identity_provider_audience,
             cache_seconds=settings.jwks_cache_seconds,
         ),
