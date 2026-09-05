@@ -82,5 +82,12 @@ Update the GetAll endpoints to add pagination, with two optional query parameter
 If `page` = 0, do not use paging - return all rows.
 This pagination will control how data is retieved from the database.
 
+12.
+Update this application to work with Open Telemetry (OTEL).
+OTEL collector is deployed to Docker container `otel-collector`, using the following ports:
+- OTLP gRPC: 4317
+- OTLP HTTP: 4318
+OTEL deploy script: `C:\Working\Storage\Dev\GitHub\Docker\Otel\Docker-Otel-builder.bat`.
+When the OTEL updates are complete, update the README to include details, such as what keywords would be used in Grafana to review logged events.
 
 

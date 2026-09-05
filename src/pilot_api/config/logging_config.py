@@ -24,6 +24,13 @@ class RequestContextFilter(logging.Filter):
             record.correlation_id = "-"
         if not hasattr(record, "operation_id"):
             record.operation_id = "-"
+        # Populated by LoggingInstrumentor when OTEL_ENABLED=true; default to
+        # "0" (OTEL's own convention for "no active span") otherwise, since
+        # the format string below always references these fields.
+        if not hasattr(record, "otelTraceID"):
+            record.otelTraceID = "0"
+        if not hasattr(record, "otelSpanID"):
+            record.otelSpanID = "0"
         return True
 
 
@@ -48,7 +55,8 @@ def configure_logging() -> None:
     )
     format_string = (
         "%(asctime)s %(levelname)s %(name)s %(message)s "
-        "%(request_id)s %(correlation_id)s %(operation_id)s"
+        "%(request_id)s %(correlation_id)s %(operation_id)s "
+        "%(otelTraceID)s %(otelSpanID)s"
     )
 
     dictConfig(

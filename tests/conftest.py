@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
 os.environ["LOG_JSON"] = "false"
+os.environ["OTEL_ENABLED"] = "false"
 
 from pilot_api.api.dependencies import get_session
 from pilot_api.main import app

@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     log_json: bool = True
     show_about_config: bool = True
 
+    otel_enabled: bool = False
+    otel_service_name: str = "pilot-api-python"
+    # "grpc" (port 4317) or "http" (port 4318).
+    otel_exporter_otlp_protocol: str = "grpc"
+    otel_exporter_otlp_endpoint: str = "http://localhost:4317"
+    otel_environment: str = "local-dev"
+
     db_backend: str = "sqlserver"
     db_name: str = "NorthWind"
     db_connect_timeout: int = 30
