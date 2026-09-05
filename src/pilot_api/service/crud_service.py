@@ -20,8 +20,8 @@ class CrudService:
         self.repository = CrudRepository(session=session, model=model_type, pk_fields=pk_fields)
         self.pk_fields = pk_fields
 
-    def get_all(self) -> list[Any]:
-        return [entity_to_dto(self.dto_type, entity) for entity in self.repository.get_all()]
+    def get_all(self, page: int = 0, page_size: int = 20) -> list[Any]:
+        return [entity_to_dto(self.dto_type, entity) for entity in self.repository.get_all(page, page_size)]
 
     def get_one(self, keys: dict[str, Any]) -> Any:
         entity = self.repository.get_one(keys)

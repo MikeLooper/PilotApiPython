@@ -1,6 +1,7 @@
 from functools import lru_cache
 from urllib.parse import quote_plus
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,9 +15,22 @@ class Settings(BaseSettings):
         "A proof of concept API to explore best-practices and new ideas, based upon the "
         "Northwind database."
     )
+    app_summary: str = "Proof of concept API for the Northwind database."
+    app_contact_name: str = "Michael Looper"
+    app_contact_email: str = "MikelLooper@gmail.com"
+    app_contact_url: str = "https://github.com/MikeLooper"
+    app_license_name: str = "MIT"
+    app_license_url: str = "https://opensource.org"
     log_level: str = "INFO"
     log_json: bool = True
     show_about_config: bool = True
+
+    otel_enabled: bool = False
+    otel_service_name: str = "pilot-api-python"
+    # "grpc" (port 4317) or "http" (port 4318).
+    otel_exporter_otlp_protocol: str = "grpc"
+    otel_exporter_otlp_endpoint: str = "http://localhost:4317"
+    otel_environment: str = "local-dev"
 
     db_backend: str = "sqlserver"
     db_name: str = "NorthWind"
@@ -31,6 +45,64 @@ class Settings(BaseSettings):
 
     # Optional full override. If supplied, this value is used as-is.
     database_url: str | None = None
+
+    security_active: bool = True
+
+    # Reachable directly from this API, for fetching signing keys (e.g. "http://local-keycloak:8080"
+    # when both run on the same Docker network).
+    identity_provider_base_url: str = "http://local-keycloak:8080"
+    # Externally-visible base URL, i.e. the one clients use to obtain tokens (e.g.
+    # "http://localhost:55001"). Tokens carry this value as their issuer, so it is what
+    # resolved_public_issuer_url validates against.
+    identity_provider_public_base_url: str | None = "http://localhost:55001"
+    identity_provider_realm: str = "local-realm"
+    identity_provider_client_id: str = "local-client"
+    identity_provider_audience: str | None = None
+    jwks_cache_seconds: int = 3600
+
+    # Optional full overrides. If supplied, these values are used as-is.
+    identity_provider_issuer_url: str | None = None
+    identity_provider_public_issuer_url: str | None = None
+    identity_provider_jwks_url: str | None = None
+
+    @field_validator(
+        "identity_provider_audience",
+        "identity_provider_public_base_url",
+        "identity_provider_issuer_url",
+        "identity_provider_public_issuer_url",
+        "identity_provider_jwks_url",
+        mode="before",
+    )
+    @classmethod
+    def _blank_to_none(cls, value: str | None) -> str | None:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @property
+    def resolved_issuer_url(self) -> str:
+        if self.identity_provider_issuer_url:
+            return self.identity_provider_issuer_url
+        return f"{self.identity_provider_base_url}/realms/{self.identity_provider_realm}"
+
+    @property
+    def resolved_public_issuer_url(self) -> str:
+        if self.identity_provider_public_issuer_url:
+            return self.identity_provider_public_issuer_url
+        base_url = self.identity_provider_public_base_url or self.identity_provider_base_url
+        return f"{base_url}/realms/{self.identity_provider_realm}"
+
+    @property
+    def resolved_jwks_url(self) -> str:
+        if self.identity_provider_jwks_url:
+            return self.identity_provider_jwks_url
+        return f"{self.resolved_issuer_url}/protocol/openid-connect/certs"
+
+    @property
+    def resolved_db_display_name(self) -> str:
+        if self.db_backend.lower() == "postgresql":
+            return "PostgreSQL"
+        return "SQL Server"
 
     @property
     def resolved_db_name(self) -> str:

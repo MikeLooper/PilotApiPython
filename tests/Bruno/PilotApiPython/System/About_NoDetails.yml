@@ -10,7 +10,6 @@ http:
     - name: show-details
       value: "false"
       type: query
-  auth: inherit
 
 runtime:
   scripts:

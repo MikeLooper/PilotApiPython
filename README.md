@@ -14,6 +14,7 @@ This repository now includes a production-oriented FastAPI implementation genera
 - SQLAlchemy 2.0
 - Alembic
 - SQL Server driver via `mssql+pyodbc`
+- OpenTelemetry (traces, metrics, logs) exported via OTLP
 - pytest + FastAPI TestClient
 
 ### Project Structure
@@ -27,6 +28,7 @@ This repository now includes a production-oriented FastAPI implementation genera
 - `src/pilot_api/model`: SQLAlchemy entities and domain objects
 - `src/pilot_api/exception`: custom errors and global exception handlers
 - `src/pilot_api/validation`: header and request validation helpers
+- `src/pilot_api/security`: JWT authentication, role-based authorization, and the `SecurityHelper` that centralizes both
 - `alembic`: migration configuration and initial schema
 - `tests`: API and service-layer tests
 
@@ -87,6 +89,11 @@ DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
 SHOW_ABOUT_CONFIG=false
+SECURITY_ACTIVE=true
+IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_REALM=local-realm
+IDENTITY_PROVIDER_CLIENT_ID=local-client
+IDENTITY_PROVIDER_AUDIENCE=
 ```
 
 - PostgreSQL
@@ -108,6 +115,11 @@ DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
 SHOW_ABOUT_CONFIG=false
+SECURITY_ACTIVE=true
+IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_REALM=local-realm
+IDENTITY_PROVIDER_CLIENT_ID=local-client
+IDENTITY_PROVIDER_AUDIENCE=
 ```
 
 5. Environment Variable Overrides
@@ -170,6 +182,83 @@ Apply migrations:
 ```bash
 python -m alembic upgrade head
 ```
+
+## Security
+
+All `/v1/...` domain endpoints require a bearer JWT, validated against a self-hosted OAuth2/OIDC identity provider (issuer + JWKS resolved from `IDENTITY_PROVIDER_*` settings). The System endpoints (`/healthcheck`, `/about`) are not protected.
+
+This is reflected in the generated OpenAPI schema: protected endpoints declare a `bearerAuth` requirement, which Swagger UI (`/docs`) shows as a lock icon per operation, with an **Authorize** button to set a bearer token for "Try it out" requests; ReDoc (`/redoc`) shows the same requirement in each operation's details.
+
+Authorization is role-based. The token's subject is looked up in a mock `UserRoles` table to resolve one of three roles, each permitting a tier of HTTP methods:
+
+| Role | Methods allowed |
+| --- | --- |
+| `read_only_role` | GET, HEAD, OPTIONS, QUERY, TRACE |
+| `read_write_role` | the above, plus PATCH, POST, PUT |
+| `admin_role` | the above, plus DELETE |
+
+Mock users (for local testing): `reader_user`, `working_user`, `working_admin_user`.
+
+`SECURITY_ACTIVE` controls what happens when authentication or authorization fails:
+
+- `true` (default): the request is rejected (`401` if the token is missing/invalid, `403` if the role is insufficient).
+- `false`: the request still proceeds, but the response carries a `Warning` header describing why authentication/authorization did not succeed.
+
+Example: obtain a token from the local dev identity provider, then call a protected endpoint:
+
+```bash
+curl -X POST "http://localhost:55001/realms/local-realm/protocol/openid-connect/token" \
+  -d "grant_type=password&client_id=local-client&username=working_user&password=<password>"
+
+curl "http://localhost:53060/v1/categories/get-all" \
+  -H "Authorization: Bearer <access_token>"
+```
+
+## Observability (OpenTelemetry)
+
+The application can export traces, metrics, and logs via [OpenTelemetry](https://opentelemetry.io) (OTLP) to a local collector, from which they flow into an LGTM stack (Tempo/Loki/Mimir/Grafana) for viewing.
+
+Controlled by these `.env` settings:
+
+```bash
+OTEL_ENABLED=true
+OTEL_SERVICE_NAME=pilot-api-python
+# "grpc" (port 4317, default) or "http" (port 4318).
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+OTEL_ENVIRONMENT=local-dev
+```
+
+When `OTEL_ENABLED=false` (the default), none of the OTEL SDKs or instrumentation are activated and the application behaves exactly as it did before this integration.
+
+### What gets instrumented
+
+- **Traces**: every HTTP request (via `FastAPIInstrumentor`) and every SQLAlchemy query (via `SQLAlchemyInstrumentor`), as child spans of the request span.
+- **Metrics**: FastAPI/ASGI request duration and count, plus standard OTEL SDK metrics, exported every 60s.
+- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The existing `X-Request-ID`/`X-Correlation-ID` headers are also recorded as `app.request_id`/`app.correlation_id` span attributes.
+
+### Running the local OTEL collector
+
+The collector, plus Tempo (traces), Mimir (metrics), Loki (logs), and Grafana, are started separately via:
+
+```bat
+C:\Working\Storage\Dev\GitHub\Docker\Otel\Docker-Otel-builder.bat
+```
+
+This exposes the OTEL collector on `localhost:4317` (OTLP gRPC) and `localhost:4318` (OTLP HTTP), and Grafana on `http://localhost:3000`.
+
+### Finding this service's data in Grafana
+
+Every signal is tagged with `service.name = pilot-api-python` (from `OTEL_SERVICE_NAME`) and `deployment.environment = local-dev` (from `OTEL_ENVIRONMENT`). Useful starting queries in Grafana Explore:
+
+| Data source | Query | Notes |
+| --- | --- | --- |
+| Loki (logs) | `{service_name="pilot-api-python"}` | Filter further, e.g. `{service_name="pilot-api-python"} \|= "error"` |
+| Loki (logs for one trace) | `{service_name="pilot-api-python"} \| trace_id="<trace id>"` | Correlate a specific trace's logs; `trace_id` is populated natively via OTLP |
+| Tempo (traces, TraceQL) | `{resource.service.name="pilot-api-python"}` | Or pick `pilot-api-python` from the Service Name dropdown in the Tempo search UI |
+| Mimir (metrics, PromQL) | `{job="pilot-api-python"}` | `job` mirrors the OTEL `service.name`; e.g. `http_server_request_duration_seconds_count{job="pilot-api-python"}` |
+
+From a trace in Tempo, use the **Logs** tab on a span (wired up via the `tracesToLogsV2` datasource setting) to jump straight to the matching Loki log lines for that trace.
 
 ## Test
 

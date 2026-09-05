@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
 
 from pilot_api.api.dependencies import get_session
@@ -33,11 +33,13 @@ def register_single_key_routes(
 
     @router.get(f"/{prefix}/get-all", response_model=list[dto_type])
     def get_all(
+        page: int = Query(default=0, ge=0),
+        pageSize: int = Query(default=20, ge=1),
         api_version: str | None = Depends(get_api_version),
         session: Session = Depends(get_session),
     ) -> list[dto_type]:
         _ = api_version
-        return create_service(session, model_type, dto_type, [key_name]).get_all()
+        return create_service(session, model_type, dto_type, [key_name]).get_all(page, pageSize)
 
     @router.get(f"/{prefix}/get/{{{path_param_name}}}", response_model=dto_type)
     def get_one(
@@ -49,7 +51,7 @@ def register_single_key_routes(
         keys = {key_name: id_cast(item_id)}
         return create_service(session, model_type, dto_type, [key_name]).get_one(keys)
 
-    @router.post(f"/{prefix}/add", response_model=AddResponseIntDto)
+    @router.post(f"/{prefix}/add", response_model=AddResponseIntDto, status_code=201)
     def add(
         payload: dto_type,
         api_version: str | None = Depends(get_api_version),

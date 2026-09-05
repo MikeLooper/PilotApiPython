@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from pilot_api.api.dependencies import get_session
@@ -12,6 +12,8 @@ router = APIRouter(tags=["CustomerCustomerDemo"])
 
 @router.get("/customer-customer-demo/get-all", response_model=list[CustomerCustomerDemoDto])
 def get_customer_customer_demo_all(
+    page: int = Query(default=0, ge=0),
+    pageSize: int = Query(default=20, ge=1),
     api_version: str | None = Depends(get_api_version),
     session: Session = Depends(get_session),
 ) -> list[CustomerCustomerDemoDto]:
@@ -21,7 +23,7 @@ def get_customer_customer_demo_all(
         CustomerCustomerDemo,
         CustomerCustomerDemoDto,
         ["customerID", "customerTypeID"],
-    ).get_all()
+    ).get_all(page, pageSize)
 
 
 @router.get(
@@ -44,7 +46,7 @@ def get_customer_customer_demo(
     ).get_one(keys)
 
 
-@router.post("/customer-customer-demo/add", response_model=AddResponseIntDto)
+@router.post("/customer-customer-demo/add", response_model=AddResponseIntDto, status_code=201)
 def add_customer_customer_demo(
     payload: CustomerCustomerDemoDto,
     api_version: str | None = Depends(get_api_version),

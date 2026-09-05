@@ -14,8 +14,11 @@ class CrudRepository:
         self.model = model
         self.pk_fields = pk_fields
 
-    def get_all(self) -> Sequence[Any]:
+    def get_all(self, page: int = 0, page_size: int = 20) -> Sequence[Any]:
         stmt = select(self.model)
+        if page > 0:
+            order_columns = [getattr(self.model, field) for field in self.pk_fields]
+            stmt = stmt.order_by(*order_columns).offset((page - 1) * page_size).limit(page_size)
         return self.session.execute(stmt).scalars().all()
 
     def get_one(self, keys: dict[str, Any]) -> Any:

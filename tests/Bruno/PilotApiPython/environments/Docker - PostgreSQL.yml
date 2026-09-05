@@ -2,4 +2,4 @@ name: Docker - PostgreSQL
 variables:
   - name: Host
     value: http://localhost:55601/
-    description: ""
+    description: "The base URL for the API under test"
