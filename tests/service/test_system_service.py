@@ -26,6 +26,7 @@ def test_system_service_healthcheck_returns_ok() -> None:
 
 def test_system_service_about_includes_config_when_show_details_true(monkeypatch) -> None:
     monkeypatch.setenv("SHOW_ABOUT_CONFIG", "false")
+    monkeypatch.setenv("APP_VERSION", "1.0.0")
     get_settings.cache_clear()
 
     engine = create_engine("sqlite+pysqlite:///:memory:", future=True)
