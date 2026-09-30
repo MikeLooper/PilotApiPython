@@ -311,7 +311,7 @@ git commit -m "Update shared submodule"
 
 ### VS Code
 
-To automatically run this application and launch the API UI, create a .vscode\launch.json file with the follwing contents:
+To automatically run this application and launch the API UI, create a .vscode\launch.json file with the following contents:
 ```
 {
     "version": "0.2.0",

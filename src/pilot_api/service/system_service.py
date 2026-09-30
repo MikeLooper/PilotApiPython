@@ -41,6 +41,7 @@ class SystemService:
                 openApi=OpenApiConfigurationDto(
                     active=True,
                     description=self.settings.app_description,
+                    license="MIT",
                     title=self.settings.app_name,
                     version=self.settings.app_version,
                 ),
