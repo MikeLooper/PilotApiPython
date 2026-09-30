@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     log_json: bool = True
     show_about_config: bool = True
 
-    otel_enabled: bool = False
+    otel_enabled: bool = True
     otel_service_name: str = "pilot-api-python"
     # "grpc" (port 4317) or "http" (port 4318).
     otel_exporter_otlp_protocol: str = "grpc"

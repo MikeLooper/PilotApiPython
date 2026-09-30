@@ -52,6 +52,15 @@ def _extract_client_attributes(claims: dict) -> dict:
     return {key: claims[key] for key in ("azp", "resource_access", "client_id") if key in claims}
 
 
+def _redact_token(raw_token: str | None) -> str | None:
+    if raw_token is None:
+        return None
+    # Tokens too short to have a hidden middle are fully redacted.
+    if len(raw_token) <= 8:
+        return "...[Redacted]..."
+    return f"{raw_token[:4]}...[Redacted]...{raw_token[-4:]}"
+
+
 class SecurityHelper:
     """Centralizes authentication (JWT/JWKS) and authorization (role-based) logic."""
 
@@ -125,7 +134,7 @@ class SecurityHelper:
             context.effective_role,
             request.method,
             request.url.path,
-            raw_token,
+            _redact_token(raw_token),
             extra=self._request_extra(request),
         )
 
@@ -135,7 +144,7 @@ class SecurityHelper:
             reason,
             request.method,
             request.url.path,
-            raw_token,
+            _redact_token(raw_token),
             extra=self._request_extra(request),
         )
 
