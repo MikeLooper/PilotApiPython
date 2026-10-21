@@ -1,5 +1,5 @@
 from pilot_api.api.routes.v1.resources.common import register_single_key_routes
-from pilot_api.dto.schemas import CustomersDto
+from pilot_api.dto.schemas import AddResponseStringDto, CustomersDto
 from pilot_api.model.entities import Customer
 
 router = register_single_key_routes(
@@ -10,4 +10,5 @@ router = register_single_key_routes(
     model_type=Customer,
     dto_type=CustomersDto,
     id_cast=str,
+    add_response_type=AddResponseStringDto,
 )

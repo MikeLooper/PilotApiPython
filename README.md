@@ -4,7 +4,7 @@ A proof of concept API to explore best-practices and new ideas (Python) - mainly
 
 ## Generated Python API
 
-This repository now includes a production-oriented FastAPI implementation generated from the OpenAPI contract in `shared/SharedModule/OpenAPI/PilotApi_v1.yaml`.
+This repository now includes a production-oriented FastAPI implementation generated from the OpenAPI contract in `shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml`.
 
 ### Stack
 
@@ -272,7 +272,7 @@ The test suite uses an isolated in-memory SQLite database with dependency overri
 
 This repository includes the shared codebase as a Git submodule at:
 
-- `shared/SharedModule`
+- `shared/PilotSharedSource`
 
 Source:
 
@@ -280,7 +280,7 @@ Source:
 
 ## Clone With SubModules
 
-For a first-time clone, include submodules so `shared/SharedModule` is ready immediately:
+For a first-time clone, include submodules so `shared/PilotSharedSource` is ready immediately:
 
 ```bash
 git clone --recurse-submodules <this-repo-url>
@@ -297,13 +297,13 @@ git submodule update --init --recursive
 When changes are made in `PilotSharedSource`, pull the latest tracked branch for this submodule:
 
 ```bash
-git submodule update --remote --merge shared/SharedModule
+git submodule update --remote --merge shared/PilotSharedSource
 ```
 
 Then commit the updated submodule pointer in this repository:
 
 ```bash
-git add shared/SharedModule .gitmodules
+git add shared/PilotSharedSource .gitmodules
 git commit -m "Update shared submodule"
 ```
 

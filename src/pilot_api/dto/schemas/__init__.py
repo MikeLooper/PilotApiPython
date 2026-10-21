@@ -1,5 +1,7 @@
 from pilot_api.dto.schemas.about_response import AboutResponseDto
 from pilot_api.dto.schemas.add_response_int import AddResponseIntDto
+from pilot_api.dto.schemas.add_response_order_details import AddResponseOrderDetailsDto
+from pilot_api.dto.schemas.add_response_string import AddResponseStringDto
 from pilot_api.dto.schemas.application_configuration import ApplicationConfigurationDto
 from pilot_api.dto.schemas.base import DtoBase
 from pilot_api.dto.schemas.categories import CategoriesDto
@@ -23,6 +25,8 @@ from pilot_api.dto.schemas.territories import TerritoriesDto
 __all__ = [
     "AboutResponseDto",
     "AddResponseIntDto",
+    "AddResponseOrderDetailsDto",
+    "AddResponseStringDto",
     "ApplicationConfigurationDto",
     "CategoriesDto",
     "CustomerCustomerDemoDto",

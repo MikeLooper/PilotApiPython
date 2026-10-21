@@ -34,7 +34,10 @@ runtime:
         test("should return id", function () {
           const resBody = res.getBody();
           
-          expect(resBody).to.have.property("id");
+          expect(resBody).to.have.property("orderID");
+          expect(resBody.orderID).to.equal(10248);
+          expect(resBody).to.have.property("productID");
+          expect(resBody.productID).to.equal(12);
         });
 
 settings:

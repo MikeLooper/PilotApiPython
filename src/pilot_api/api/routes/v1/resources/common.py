@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
 
 from pilot_api.api.dependencies import get_session
-from pilot_api.dto.schemas import AddResponseIntDto, ProblemDetailsDto
+from pilot_api.dto.schemas import AddResponseIntDto, AddResponseStringDto, ProblemDetailsDto
 from pilot_api.service.crud_service import CrudService
 from pilot_api.validation.rules import get_api_version
 
@@ -28,6 +28,7 @@ def register_single_key_routes(
     model_type: type[Any],
     dto_type: type[Any],
     id_cast: Callable[[Any], Any],
+    add_response_type: type[AddResponseIntDto] | type[AddResponseStringDto] = AddResponseIntDto,
 ) -> APIRouter:
     router = APIRouter(tags=[tag])
 
@@ -51,14 +52,16 @@ def register_single_key_routes(
         keys = {key_name: id_cast(item_id)}
         return create_service(session, model_type, dto_type, [key_name]).get_one(keys)
 
-    @router.post(f"/{prefix}/add", response_model=AddResponseIntDto, status_code=201)
+    @router.post(f"/{prefix}/add", response_model=add_response_type, status_code=201)
     def add(
         payload: dto_type,
         api_version: str | None = Depends(get_api_version),
         session: Session = Depends(get_session),
-    ) -> AddResponseIntDto:
+    ) -> AddResponseIntDto | AddResponseStringDto:
         _ = api_version
         entity_id = create_service(session, model_type, dto_type, [key_name]).add(payload)
+        if add_response_type is AddResponseStringDto:
+            return AddResponseStringDto(id=str(entity_id))
         if isinstance(entity_id, str):
             return AddResponseIntDto(id=0)
         return AddResponseIntDto(id=int(entity_id))
