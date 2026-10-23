@@ -6,8 +6,8 @@ router = register_single_key_routes(
     prefix="products",
     tag="Products",
     path_param_name="productId",
-    key_name="productID",
+    key_name="productId",
     model_type=Product,
     dto_type=ProductsDto,
-    id_cast=int,
+    key_type=int,
 )

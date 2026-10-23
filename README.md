@@ -34,21 +34,18 @@ This repository now includes a production-oriented FastAPI implementation genera
 
 ### Northwind Coverage
 
-The API now maps to the full set of classic Northwind tables:
+The API exposes the Northwind tables described by the OpenAPI definition (`shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml`):
 
 - `Categories`
-- `CustomerCustomerDemo`
-- `CustomerDemographics`
 - `Customers`
 - `Employees`
-- `EmployeeTerritories`
 - `Order Details`
 - `Orders`
 - `Products`
-- `Region`
 - `Shippers`
 - `Suppliers`
-- `Territories`
+
+The remaining Northwind tables (`CustomerCustomerDemo`, `CustomerDemographics`, `EmployeeTerritories`, `Region`, `Territories`) are mapped as SQLAlchemy entities for the schema migration only; they have no endpoints.
 
 To avoid unintended schema changes, the application does not execute automatic DDL on startup.
 
@@ -88,7 +85,7 @@ DB_DRIVER=ODBC Driver 18 for SQL Server
 DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
-SHOW_ABOUT_CONFIG=false
+SHOW_ABOUT_CONFIG=true
 SECURITY_ACTIVE=true
 IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
 IDENTITY_PROVIDER_REALM=local-realm
@@ -114,7 +111,7 @@ DB_USER=DevUser
 DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
-SHOW_ABOUT_CONFIG=false
+SHOW_ABOUT_CONFIG=true
 SECURITY_ACTIVE=true
 IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
 IDENTITY_PROVIDER_REALM=local-realm
@@ -127,6 +124,10 @@ IDENTITY_PROVIDER_AUDIENCE=
 Use `DB_HOST=local_mssql` only when the API process runs inside the same Docker network where that service name exists.
 
 You can also set `DATABASE_URL` directly to override attribute-based construction.
+
+`DB_PASSWORD` and `DATABASE_URL` have no defaults; the application refuses to start unless at least one of them is set. `DB_TRUST_SERVER_CERTIFICATE` defaults to `false` — set it to `true` only for local development against a self-signed certificate (as in the local Docker setup above). Contact details shown in the OpenAPI document (`APP_CONTACT_NAME`, `APP_CONTACT_EMAIL`, `APP_CONTACT_URL`) are omitted unless set.
+
+The build/deploy pipeline can supply `APP_BUILD_VERSION` and `APP_DEPLOY_DATE` for `/about`; when unset, `buildVersion` falls back to `APP_VERSION` and `deployDate` to the process start time. With `SHOW_ABOUT_CONFIG=false`, `/about?show-details=true` omits `applicationConfiguration`.
 
 The application listens on port `8000` by default, but this can be overrriden.
 
@@ -187,7 +188,7 @@ python -m alembic upgrade head
 
 All `/v1/...` domain endpoints require a bearer JWT, validated against a self-hosted OAuth2/OIDC identity provider (issuer + JWKS resolved from `IDENTITY_PROVIDER_*` settings). The System endpoints (`/healthcheck`, `/about`) are not protected.
 
-This is reflected in the generated OpenAPI schema: protected endpoints declare a `bearerAuth` requirement, which Swagger UI (`/docs`) shows as a lock icon per operation, with an **Authorize** button to set a bearer token for "Try it out" requests; ReDoc (`/redoc`) shows the same requirement in each operation's details.
+This is reflected in the generated OpenAPI schema: protected endpoints declare a `Bearer` requirement, which Swagger UI (`/docs`) shows as a lock icon per operation, with an **Authorize** button to set a bearer token for "Try it out" requests; ReDoc (`/redoc`) shows the same requirement in each operation's details.
 
 Authorization is role-based. The token's subject is looked up in a mock `UserRoles` table to resolve one of three roles, each permitting a tier of HTTP methods:
 
@@ -229,7 +230,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 OTEL_ENVIRONMENT=local-dev
 ```
 
-When `OTEL_ENABLED=false` (the default), none of the OTEL SDKs or instrumentation are activated and the application behaves exactly as it did before this integration.
+When `OTEL_ENABLED=false`, none of the OTEL SDKs or instrumentation are activated.
 
 ### What gets instrumented
 

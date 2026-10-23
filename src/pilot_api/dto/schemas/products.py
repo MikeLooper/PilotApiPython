@@ -1,30 +1,14 @@
-from pydantic import field_validator
-
-from pilot_api.dto.schemas.base import DtoBase, coerce_number
+from pilot_api.dto.schemas.base import DtoBase
 
 
 class ProductsDto(DtoBase):
-    categoryID: int | None = None
-    discontinued: bool
-    productID: int | None = None
+    categoryId: int | None = None
+    discontinued: bool = False
+    productId: int | None = None
     productName: str | None
     quantityPerUnit: str | None = None
-    reorderLevel: int
-    supplierID: int | None = None
+    reorderLevel: int = 0
+    supplierId: int | None = None
     unitPrice: float | None = None
-    unitsInStock: int
-    unitsOnOrder: int
-
-    @field_validator(
-        "productID",
-        "supplierID",
-        "categoryID",
-        "unitPrice",
-        "unitsInStock",
-        "unitsOnOrder",
-        "reorderLevel",
-        mode="before",
-    )
-    @classmethod
-    def validate_product_numbers(cls, value: object) -> object:
-        return coerce_number(value)
+    unitsInStock: int = 0
+    unitsOnOrder: int = 0

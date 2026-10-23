@@ -1,7 +1,8 @@
 from functools import lru_cache
+from typing import Self
 from urllib.parse import quote_plus
 
-from pydantic import field_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,15 +11,17 @@ class Settings(BaseSettings):
 
     app_name: str = "PilotApiPython"
     app_version: str = "1.0.0"
+    # Supplied by the build/deploy pipeline; see SystemService.about for fallbacks.
     app_deploy_date: str | None = None
+    app_build_version: str | None = None
     app_description: str = (
         "A proof of concept API to explore best-practices and new ideas, based upon the "
         "Northwind database."
     )
     app_summary: str = "Proof of concept API for the Northwind database."
-    app_contact_name: str = "Michael Looper"
-    app_contact_email: str = "MikelLooper@gmail.com"
-    app_contact_url: str = "https://github.com/MikeLooper"
+    app_contact_name: str | None = None
+    app_contact_email: str | None = None
+    app_contact_url: str | None = None
     app_license_name: str = "MIT"
     app_license_url: str = "https://opensource.org"
     log_level: str = "INFO"
@@ -36,15 +39,16 @@ class Settings(BaseSettings):
     db_name: str = "NorthWind"
     db_connect_timeout: int = 30
     db_host: str = "local_mssql"
-    db_password: str = "<DevUser password>"
+    # No default: either DB_PASSWORD or DATABASE_URL must be supplied (see _require_credentials).
+    db_password: SecretStr | None = None
     db_port: int = 1433
     db_schema: str = "dbo"
     db_user: str = "DevUser"
     db_driver: str = "ODBC Driver 18 for SQL Server"
-    db_trust_server_certificate: bool = True
+    db_trust_server_certificate: bool = False
 
     # Optional full override. If supplied, this value is used as-is.
-    database_url: str | None = None
+    database_url: SecretStr | None = None
 
     security_active: bool = True
 
@@ -66,6 +70,8 @@ class Settings(BaseSettings):
     identity_provider_jwks_url: str | None = None
 
     @field_validator(
+        "db_password",
+        "database_url",
         "identity_provider_audience",
         "identity_provider_public_base_url",
         "identity_provider_issuer_url",
@@ -78,6 +84,12 @@ class Settings(BaseSettings):
         if isinstance(value, str) and not value.strip():
             return None
         return value
+
+    @model_validator(mode="after")
+    def _require_credentials(self) -> Self:
+        if self.database_url is None and self.db_password is None:
+            raise ValueError("Either DATABASE_URL or DB_PASSWORD must be set.")
+        return self
 
     @property
     def resolved_issuer_url(self) -> str:
@@ -136,22 +148,28 @@ class Settings(BaseSettings):
 
     @property
     def resolved_database_url(self) -> str:
-        if self.database_url:
-            return self.database_url
+        if self.database_url is not None:
+            return self.database_url.get_secret_value()
 
-        encoded_password = quote_plus(self.db_password)
+        # _require_credentials guarantees db_password is set when database_url is not.
+        assert self.db_password is not None
+        encoded_password = quote_plus(self.db_password.get_secret_value())
 
         if self.db_backend.lower() == "postgresql":
             return (
-                f"postgresql+psycopg://{self.resolved_db_user}:{encoded_password}@{self.resolved_db_host}:{self.resolved_db_port}/{self.resolved_db_name}"
-                f"?connect_timeout={self.db_connect_timeout}&options=-csearch_path%3D{self.resolved_db_schema}"
+                f"postgresql+psycopg://{self.resolved_db_user}:{encoded_password}"
+                f"@{self.resolved_db_host}:{self.resolved_db_port}/{self.resolved_db_name}"
+                f"?connect_timeout={self.db_connect_timeout}"
+                f"&options=-csearch_path%3D{self.resolved_db_schema}"
             )
 
         driver = quote_plus(self.db_driver)
         trust_server_certificate = "yes" if self.db_trust_server_certificate else "no"
         return (
-            f"mssql+pyodbc://{self.db_user}:{encoded_password}@{self.db_host}:{self.db_port}/{self.db_name}"
-            f"?driver={driver}&TrustServerCertificate={trust_server_certificate}&timeout={self.db_connect_timeout}"
+            f"mssql+pyodbc://{self.db_user}:{encoded_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+            f"?driver={driver}&TrustServerCertificate={trust_server_certificate}"
+            f"&timeout={self.db_connect_timeout}"
         )
 
 

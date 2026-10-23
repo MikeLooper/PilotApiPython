@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "categoryID": {{newId}},
+        "categoryId": {{newId}},
         "categoryName": "Test Cat Update",
         "description": "Test Category Updated",
         "picture": null

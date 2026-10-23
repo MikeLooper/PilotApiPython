@@ -86,9 +86,9 @@ def configure_telemetry() -> None:
     # onto every LogRecord, so console and OTLP logs alike carry correlation IDs.
     LoggingInstrumentor().instrument(inject_trace_context=True)
 
-    from pilot_api.config.database import engine
+    from pilot_api.config.database import get_engine
 
-    SQLAlchemyInstrumentor().instrument(engine=engine, tracer_provider=tracer_provider)
+    SQLAlchemyInstrumentor().instrument(engine=get_engine(), tracer_provider=tracer_provider)
 
     _configured = True
 

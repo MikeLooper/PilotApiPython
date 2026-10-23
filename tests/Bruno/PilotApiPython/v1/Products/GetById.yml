@@ -19,7 +19,7 @@ runtime:
         test("should return object", function () {
           const resBody = res.getBody();
           
-          expect(resBody).to.have.property("productID");
+          expect(resBody).to.have.property("productId");
         });
 
 settings:

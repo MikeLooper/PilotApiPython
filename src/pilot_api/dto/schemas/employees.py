@@ -1,8 +1,6 @@
 from datetime import datetime
 
-from pydantic import field_validator
-
-from pilot_api.dto.schemas.base import DtoBase, coerce_number
+from pilot_api.dto.schemas.base import DtoBase
 
 
 class EmployeesDto(DtoBase):
@@ -10,7 +8,7 @@ class EmployeesDto(DtoBase):
     birthDate: datetime | None = None
     city: str | None = None
     country: str | None = None
-    employeeID: int | None = None
+    employeeId: int | None = None
     extension: str | None = None
     firstName: str | None
     hireDate: datetime | None = None
@@ -24,8 +22,3 @@ class EmployeesDto(DtoBase):
     reportsTo: int | None = None
     title: str | None = None
     titleOfCourtesy: str | None = None
-
-    @field_validator("employeeID", "reportsTo", mode="before")
-    @classmethod
-    def validate_employee_numbers(cls, value: object) -> object:
-        return coerce_number(value)

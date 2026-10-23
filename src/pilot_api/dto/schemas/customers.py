@@ -8,7 +8,7 @@ class CustomersDto(DtoBase):
     contactName: str | None = None
     contactTitle: str | None = None
     country: str | None = None
-    customerID: str | None
+    customerId: str | None
     fax: str | None = None
     phone: str | None = None
     postalCode: str | None = None

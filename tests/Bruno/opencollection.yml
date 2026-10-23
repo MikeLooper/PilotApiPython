@@ -18,7 +18,7 @@ request:
   headers:
     - name: Accept
       value: application/json
-    - name: ApiVersion
+    - name: X-Api-Version
       value: "1"
 bundled: false
 extensions:

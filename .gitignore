@@ -149,6 +149,7 @@ activemq-data/
 
 # Environments
 .env
+.env.*
 .envrc
 .venv
 env/
@@ -178,38 +179,6 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
-
-# Cython debug symbols
-cython_debug/{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python: Pilot API",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "pilot_api.main:app",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000"
-            ],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "Uvicorn running on http://\\S+:(\\d+)",
-                "uriFormat": "http://localhost:%s/docs"
-            },
-            "console": "integratedTerminal",
-            "justMyCode": true
-        }
-    ]
-}
-
 
 # PyCharm
 #   JetBrains specific template is maintained in a separate JetBrains.gitignore that can

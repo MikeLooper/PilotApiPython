@@ -9,7 +9,7 @@ from pilot_api.model.base import Base
 class Employee(Base):
     __tablename__ = "Employees"
 
-    employeeID: Mapped[int] = mapped_column(Integer, primary_key=True)
+    employeeId: Mapped[int] = mapped_column("employeeID", Integer, primary_key=True)
     lastName: Mapped[str | None] = mapped_column(String(255), nullable=True)
     firstName: Mapped[str | None] = mapped_column(String(255), nullable=True)
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)

@@ -1,16 +1,14 @@
 from datetime import datetime
 
-from pydantic import field_validator
-
-from pilot_api.dto.schemas.base import DtoBase, coerce_number
+from pilot_api.dto.schemas.base import DtoBase
 
 
 class OrdersDto(DtoBase):
-    customerID: str | None = None
-    employeeID: int | None = None
+    customerId: str | None = None
+    employeeId: int | None = None
     freight: float | None = None
     orderDate: datetime | None = None
-    orderID: int | None = None
+    orderId: int | None = None
     requiredDate: datetime | None = None
     shipAddress: str | None = None
     shipCity: str | None = None
@@ -20,8 +18,3 @@ class OrdersDto(DtoBase):
     shipPostalCode: str | None = None
     shipRegion: str | None = None
     shipVia: int | None = None
-
-    @field_validator("orderID", "employeeID", "shipVia", "freight", mode="before")
-    @classmethod
-    def validate_order_numbers(cls, value: object) -> object:
-        return coerce_number(value)

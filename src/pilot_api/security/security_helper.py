@@ -1,5 +1,6 @@
 import logging
 from functools import lru_cache
+from typing import Annotated
 
 from fastapi import Depends, Request, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -12,13 +13,14 @@ from pilot_api.security.token_validator import TokenValidationError, TokenValida
 
 logger = logging.getLogger(__name__)
 
-# Declared purely so FastAPI's OpenAPI generation records a `bearerAuth`
+# Declared purely so FastAPI's OpenAPI generation records the `Bearer`
 # security scheme and marks dependent routes as requiring it (lock icon in
 # Swagger UI). Token extraction/validation itself still happens in
 # SecurityHelper.enforce, which reads the raw header directly.
 bearer_scheme = HTTPBearer(
-    scheme_name="bearerAuth",
-    description="JWT bearer token issued by the identity provider.",
+    scheme_name="Bearer",
+    bearerFormat="JWT",
+    description="JWT bearer authentication",
     auto_error=False,
 )
 
@@ -52,6 +54,11 @@ def _extract_client_attributes(claims: dict) -> dict:
     return {key: claims[key] for key in ("azp", "resource_access", "client_id") if key in claims}
 
 
+def _header_safe(value: str) -> str:
+    # The reason may carry token-parsing text; keep it to one quoted-string line.
+    return value.replace("\r", "").replace("\n", "").replace('"', "'")
+
+
 def _redact_token(raw_token: str | None) -> str | None:
     if raw_token is None:
         return None
@@ -74,7 +81,7 @@ class SecurityHelper:
         self._token_validator = token_validator
         self._role_repository = role_repository
 
-    async def enforce(self, request: Request, response: Response) -> SecurityContext:
+    def enforce(self, request: Request, response: Response) -> SecurityContext:
         raw_token = self._extract_bearer_token(request)
         try:
             context = self._authenticate(raw_token)
@@ -83,7 +90,9 @@ class SecurityHelper:
             self._log_failure(exc.detail, request, raw_token)
             if self._settings.security_active:
                 raise
-            response.headers["Warning"] = f'299 pilot-api "{exc.detail}"'
+            response.headers["Warning"] = (
+                f'299 {self._settings.app_name} "{_header_safe(exc.detail)}"'
+            )
             return SecurityContext.anonymous(exc.detail)
 
         self._log_success(context, request, raw_token)
@@ -120,6 +129,8 @@ class SecurityHelper:
 
     @staticmethod
     def _authorize(context: SecurityContext, method: str) -> None:
+        if context.effective_role is None:
+            raise ForbiddenError(f"No application role found for user '{context.user_id}'.")
         if not is_authorized(context.effective_role, method):
             raise ForbiddenError(
                 f"Role '{context.effective_role}' is not permitted to perform '{method}'."
@@ -135,7 +146,7 @@ class SecurityHelper:
             request.method,
             request.url.path,
             _redact_token(raw_token),
-            extra=self._request_extra(request),
+            extra={"operation_id": request.url.path},
         )
 
     def _log_failure(self, reason: str, request: Request, raw_token: str | None) -> None:
@@ -145,16 +156,8 @@ class SecurityHelper:
             request.method,
             request.url.path,
             _redact_token(raw_token),
-            extra=self._request_extra(request),
+            extra={"operation_id": request.url.path},
         )
-
-    @staticmethod
-    def _request_extra(request: Request) -> dict:
-        return {
-            "request_id": getattr(request.state, "request_id", "-"),
-            "correlation_id": getattr(request.state, "correlation_id", "-"),
-            "operation_id": request.url.path,
-        }
 
 
 @lru_cache(maxsize=1)
@@ -176,10 +179,12 @@ def clear_security_helper_cache() -> None:
     get_security_helper.cache_clear()
 
 
-async def enforce_security(
+# Plain def (not async): PyJWKClient fetches JWKS synchronously on a cache
+# miss, so FastAPI must run this in its thread pool, off the event loop.
+def enforce_security(
     request: Request,
     response: Response,
-    _credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-    helper: SecurityHelper = Depends(get_security_helper),
+    _credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+    helper: Annotated[SecurityHelper, Depends(get_security_helper)],
 ) -> SecurityContext:
-    return await helper.enforce(request, response)
+    return helper.enforce(request, response)
