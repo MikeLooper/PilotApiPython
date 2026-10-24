@@ -7,7 +7,12 @@ from fastapi import FastAPI, Request, Response
 from opentelemetry import trace
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from pilot_api.api.openapi import install_openapi
+from pilot_api.api.openapi import (
+    CONTRACT_INFO,
+    OPENAPI_TAGS,
+    OPENAPI_VERSION,
+    install_openapi,
+)
 from pilot_api.api.router import api_router
 from pilot_api.config.database import get_engine
 from pilot_api.config.logging_config import (
@@ -15,7 +20,6 @@ from pilot_api.config.logging_config import (
     correlation_id_var,
     request_id_var,
 )
-from pilot_api.config.settings import Settings, get_settings
 from pilot_api.config.telemetry import configure_telemetry, instrument_app
 from pilot_api.exception.handlers import register_exception_handlers
 
@@ -47,32 +51,17 @@ async def lifespan(_: FastAPI):
     get_engine().dispose()
 
 
-def _contact_info(settings: Settings) -> dict[str, str]:
-    contact = {
-        "name": settings.app_contact_name,
-        "email": settings.app_contact_email,
-        "url": settings.app_contact_url,
-    }
-    return {key: value for key, value in contact.items() if value is not None}
-
-
 def create_app() -> FastAPI:
-    settings = get_settings()
     configure_logging()
     configure_telemetry()
 
     app = FastAPI(
-        title=settings.app_name,
-        version=settings.app_version,
-        description=settings.app_description,
-        summary=settings.app_summary,
-        contact=_contact_info(settings) or None,
-        license_info={
-            "name": settings.app_license_name,
-            "url": settings.app_license_url,
-        },
+        **CONTRACT_INFO,
+        openapi_tags=OPENAPI_TAGS,
         lifespan=lifespan,
     )
+    # Not a constructor argument; FastAPI reads the attribute when building the document.
+    app.openapi_version = OPENAPI_VERSION
     app.add_middleware(RequestContextMiddleware)
     app.include_router(api_router)
     register_exception_handlers(app)

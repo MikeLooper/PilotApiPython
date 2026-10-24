@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from pydantic import Field
+
 from pilot_api.dto.schemas.base import DtoBase
 
 
@@ -15,7 +17,7 @@ class EmployeesDto(DtoBase):
     homePhone: str | None = None
     lastName: str | None
     notes: str | None = None
-    photo: str | None = None
+    photo: str | None = Field(default=None, json_schema_extra={"format": "byte"})
     photoPath: str | None = None
     postalCode: str | None = None
     region: str | None = None

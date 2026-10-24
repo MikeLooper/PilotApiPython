@@ -1,9 +1,7 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 
 from pilot_api.api.dependencies import SessionDep
-from pilot_api.api.routes.v1.resources.common import create_service
+from pilot_api.api.routes.v1.resources.common import PageQuery, PageSizeQuery, create_service
 from pilot_api.dto.schemas import AddResponseOrderDetailsDto, OrderDetailsDto
 from pilot_api.model.entities import OrderDetail
 
@@ -15,8 +13,8 @@ _PK_FIELDS = ["orderId", "productId"]
 @router.get("/order-details/get-all", response_model=list[OrderDetailsDto])
 def get_order_details_all(
     session: SessionDep,
-    page: Annotated[int, Query(ge=0)] = 0,
-    pageSize: Annotated[int, Query(ge=1)] = 20,
+    page: PageQuery = 0,
+    pageSize: PageSizeQuery = 20,
 ) -> list[OrderDetailsDto]:
     return create_service(session, OrderDetail, OrderDetailsDto, _PK_FIELDS).get_all(page, pageSize)
 

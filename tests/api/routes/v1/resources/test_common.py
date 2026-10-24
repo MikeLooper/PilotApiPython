@@ -190,6 +190,32 @@ def test_non_numeric_id_for_int_key_is_a_bad_request(client: TestClient, operati
     assert body["detail"].startswith("path.categoryId: ")
 
 
+@pytest.mark.parametrize(
+    ("path", "query", "field"),
+    [
+        ("/v1/categories/get-all", "page=-1", "query.page: "),
+        ("/v1/categories/get-all", "pageSize=0", "query.pageSize: "),
+        ("/v1/order-details/get-all", "page=-1", "query.page: "),
+        ("/v1/order-details/get-all", "pageSize=0", "query.pageSize: "),
+    ],
+)
+def test_get_all_out_of_range_paging_is_a_bad_request(
+    client: TestClient, path: str, query: str, field: str
+) -> None:
+    response = client.get(f"{path}?{query}", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 400
+    assert response.json()["detail"].startswith(field)
+
+
+def test_get_all_lowest_valid_paging_is_accepted(client: TestClient) -> None:
+    response = client.get(
+        "/v1/categories/get-all?page=0&pageSize=1", headers={"X-Api-Version": "1"}
+    )
+
+    assert response.status_code == 200
+
+
 def test_customer_add_requires_customer_id(client: TestClient) -> None:
     invalid_payload = {"companyName": "Missing customerId"}
     response = client.post(

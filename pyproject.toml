@@ -37,6 +37,7 @@ dev = [
   "pytest>=8.4.0,<9.0.0",
   "pytest-cov>=6.2.0,<7.0.0",
   "httpx>=0.28.0,<1.0.0",
+  "pyyaml>=6.0.0,<7.0.0",
   "ruff>=0.12.0,<1.0.0"
 ]
 
@@ -47,6 +48,9 @@ packages = ["src/pilot_api"]
 minversion = "8.0"
 addopts = "-q"
 testpaths = ["tests"]
+markers = [
+  "integration: compares the application against external artifacts such as the shared OpenAPI specification",
+]
 
 [tool.ruff]
 line-length = 100

@@ -125,7 +125,7 @@ Use `DB_HOST=local_mssql` only when the API process runs inside the same Docker 
 
 You can also set `DATABASE_URL` directly to override attribute-based construction.
 
-`DB_PASSWORD` and `DATABASE_URL` have no defaults; the application refuses to start unless at least one of them is set. `DB_TRUST_SERVER_CERTIFICATE` defaults to `false` — set it to `true` only for local development against a self-signed certificate (as in the local Docker setup above). Contact details shown in the OpenAPI document (`APP_CONTACT_NAME`, `APP_CONTACT_EMAIL`, `APP_CONTACT_URL`) are omitted unless set.
+`DB_PASSWORD` and `DATABASE_URL` have no defaults; the application refuses to start unless at least one of them is set. `DB_TRUST_SERVER_CERTIFICATE` defaults to `false` — set it to `true` only for local development against a self-signed certificate (as in the local Docker setup above). Contact details reported by `/about` (`APP_CONTACT_NAME`, `APP_CONTACT_EMAIL`, `APP_CONTACT_URL`) are omitted unless set. The OpenAPI document's `info` block is fixed to match the shared definition (see `src/pilot_api/api/openapi.py`) and does not change with the `APP_*` settings.
 
 The build/deploy pipeline can supply `APP_BUILD_VERSION` and `APP_DEPLOY_DATE` for `/about`; when unset, `buildVersion` falls back to `APP_VERSION` and `deployDate` to the process start time. With `SHOW_ABOUT_CONFIG=false`, `/about?show-details=true` omits `applicationConfiguration`.
 
