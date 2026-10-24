@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -23,6 +25,23 @@ def test_exception_handler_returns_problem_details_for_app_error() -> None:
     assert body["title"] == "Bad Request"
     assert body["detail"] == "Invalid request"
     assert body["instance"] == "/raise-app-error"
+
+
+def test_problem_details_include_utc_timestamp_without_request_settings() -> None:
+    app = FastAPI()
+    register_exception_handlers(app)
+
+    @app.get("/raise-app-error")
+    def raise_app_error() -> None:
+        raise BadRequestError("Invalid request")
+
+    body = TestClient(app).get("/raise-app-error").json()
+
+    timestamp = datetime.fromisoformat(body["timestamp"])
+    assert timestamp.tzinfo == UTC
+    assert abs(datetime.now(UTC) - timestamp) < timedelta(minutes=1)
+    assert "correlationId" not in body
+    assert "requestId" not in body
 
 
 def test_exception_handler_returns_problem_details_for_validation_error() -> None:

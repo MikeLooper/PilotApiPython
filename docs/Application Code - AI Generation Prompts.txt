@@ -136,3 +136,9 @@ Update OTEL to record the following:
 		- If exception stacktrace is not already recorded: Exception.Stacktrace = <record.Exception.StackTrace>
 		- If exception inner exception exists and is not already recorded: Exception.InnerException = <If record.Exception.InnerException != null: record.Exception.InnerException.ToString()>
 		- If the exception message, stacktrace, and inner exception are not added, due to redundancy or not being available, do not make any changes to the exception recording process.
+
+17.
+Update ProblemDetails handling to include extension values, like the following .NET code:
+`ctx.ProblemDetails.Extensions.Add("correlationId", requestSettings.CorrelationId);
+ctx.ProblemDetails.Extensions.Add("requestId", requestSettings.RequestId);
+ctx.ProblemDetails.Extensions.Add("timestamp", DateTime.UtcNow);`

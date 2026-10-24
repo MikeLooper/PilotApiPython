@@ -2,7 +2,7 @@ import logging
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from pilot_api import main
@@ -101,6 +101,30 @@ def test_unhandled_error_response_carries_request_settings_headers() -> None:
     assert response.status_code == 500
     assert response.headers["X-Correlation-Id"] == "corr-err"
     assert response.headers["X-Request-Id"] != ""
+
+
+@pytest.mark.parametrize(("path", "status_code"), [("/not-found", 404), ("/boom", 500)])
+def test_problem_details_carry_request_settings_extensions(path: str, status_code: int) -> None:
+    app = _context_echo_app()
+    register_exception_handlers(app)
+
+    @app.get("/not-found")
+    def not_found() -> None:
+        raise HTTPException(status_code=404, detail="Widget not found")
+
+    @app.get("/boom")
+    def boom() -> None:
+        raise RuntimeError("boom")
+
+    response = TestClient(app, raise_server_exceptions=False).get(
+        path, headers={"X-Correlation-Id": "corr-err"}
+    )
+
+    assert response.status_code == status_code
+    body = response.json()
+    assert body["correlationId"] == "corr-err"
+    assert body["requestId"] == response.headers["X-Request-Id"]
+    assert body["timestamp"].endswith("Z")
 
 
 def test_lifespan_disposes_engine_on_shutdown(monkeypatch: pytest.MonkeyPatch) -> None:
