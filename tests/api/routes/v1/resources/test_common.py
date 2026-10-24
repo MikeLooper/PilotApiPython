@@ -133,6 +133,7 @@ def test_single_key_domain_crud_contract(client: TestClient, case: dict) -> None
     )
     assert add_response.status_code == 201
     assert "id" in add_response.json()
+    assert add_response.json()["id"] == case["id_value"]
 
     get_all_response = client.get(f"{case['base']}/get-all", headers={"X-Api-Version": "1"})
     assert get_all_response.status_code == 200
