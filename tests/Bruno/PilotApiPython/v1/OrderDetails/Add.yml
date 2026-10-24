@@ -20,11 +20,6 @@ http:
 
 runtime:
   scripts:
-    - type: after-response
-      code: |-
-        // Example: Storing an extracted token or ID from a JSON response
-        const jsonData = res.getBody();
-        bru.setVar("newId", jsonData.id);
     - type: tests
       code: |-
         test("should return success", function () {
