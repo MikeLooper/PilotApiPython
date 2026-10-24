@@ -80,7 +80,7 @@ copy .env.example .env
 
 ```bash
 APP_NAME=PilotApiPython
-APP_VERSION=1.0.0
+APP_VERSION=1.1.2
 LOG_LEVEL=INFO
 LOG_JSON=true
 DB_NAME=NorthWind
@@ -95,7 +95,7 @@ DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
 SECURITY_ACTIVE=true
-IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_BASE_URL=http://localhost:11141
 IDENTITY_PROVIDER_REALM=local-realm
 IDENTITY_PROVIDER_CLIENT_ID=local-client
 IDENTITY_PROVIDER_AUDIENCE=
@@ -105,7 +105,7 @@ IDENTITY_PROVIDER_AUDIENCE=
 
 ```bash
 APP_NAME=PilotApiPython
-APP_VERSION=1.0.0
+APP_VERSION=1.1.2
 LOG_LEVEL=INFO
 LOG_JSON=true
 DB_BACKEND=postgresql
@@ -120,7 +120,7 @@ DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
 SECURITY_ACTIVE=true
-IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_BASE_URL=http://localhost:11141
 IDENTITY_PROVIDER_REALM=local-realm
 IDENTITY_PROVIDER_CLIENT_ID=local-client
 IDENTITY_PROVIDER_AUDIENCE=
@@ -215,7 +215,7 @@ Mock users (for local testing): `reader_user`, `working_user`, `working_admin_us
 Example: obtain a token from the local dev identity provider, then call a protected endpoint:
 
 ```bash
-curl -X POST "http://localhost:55001/realms/local-realm/protocol/openid-connect/token" \
+curl -X POST "http://localhost:11141/realms/local-realm/protocol/openid-connect/token" \
   -d "grant_type=password&client_id=local-client&username=working_user&password=<password>"
 
 curl "http://localhost:53060/v1/categories/get-all" \

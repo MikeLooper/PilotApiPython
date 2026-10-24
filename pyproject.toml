@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pilot-api-python"
-version = "1.0.0"
+version = "1.1.2"
 description = "OpenAPI-driven FastAPI implementation for the Pilot API"
 readme = "README.md"
 requires-python = ">=3.12"

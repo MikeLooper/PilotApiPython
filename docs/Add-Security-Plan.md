@@ -71,13 +71,13 @@ def resolved_jwks_url(self) -> str:
     return f"{self.resolved_issuer_url}/protocol/openid-connect/certs"
 ```
 
-The default `identity_provider_base_url` mirrors the existing `db_host` convention: it defaults to the Docker-network hostname (`local-keycloak`, production-style), and local development overrides it to `http://localhost:55001` via `.env`. No setting, class, or variable name contains the word `Keycloak` (per the vendor-neutrality requirement) — the value itself may point at a Keycloak instance, but nothing in the code or config *names* it.
+The default `identity_provider_base_url` mirrors the existing `db_host` convention: it defaults to the Docker-network hostname (`local-keycloak`, production-style), and local development overrides it to `http://localhost:11141` via `.env`. No setting, class, or variable name contains the word `Keycloak` (per the vendor-neutrality requirement) — the value itself may point at a Keycloak instance, but nothing in the code or config *names* it.
 
 `.env.example` additions (both the SQL Server and PostgreSQL blocks in the README get the same lines):
 
 ```
 SECURITY_ACTIVE=true
-IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_BASE_URL=http://localhost:11141
 IDENTITY_PROVIDER_REALM=local-realm
 IDENTITY_PROVIDER_CLIENT_ID=local-client
 IDENTITY_PROVIDER_AUDIENCE=
@@ -294,10 +294,10 @@ All new and existing tests run via `python -m pytest` and must pass before this 
 Add a **Security** section to [README.md](README.md), after **Migrations** and before **Test**, covering:
 - The new `.env` variables (`SECURITY_ACTIVE`, `IDENTITY_PROVIDER_*`) alongside the existing DB blocks.
 - How `SECURITY_ACTIVE` changes behavior (block vs. warn-and-allow).
-- A worked example: obtaining a token from the local dev IDP instance (`http://localhost:55001`, realm `local-realm`, client `local-client`) via the standard OAuth2 token endpoint, then calling a protected endpoint:
+- A worked example: obtaining a token from the local dev IDP instance (`http://localhost:11141`, realm `local-realm`, client `local-client`) via the standard OAuth2 token endpoint, then calling a protected endpoint:
 
 ```bash
-curl -X POST "http://localhost:55001/realms/local-realm/protocol/openid-connect/token" \
+curl -X POST "http://localhost:11141/realms/local-realm/protocol/openid-connect/token" \
   -d "grant_type=password&client_id=local-client&username=working_user&password=<pwd>"
 
 curl "http://localhost:53060/v1/categories/get-all" \

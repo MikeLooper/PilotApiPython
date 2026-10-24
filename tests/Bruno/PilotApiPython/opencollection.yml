@@ -41,7 +41,7 @@ request:
       autoRefreshToken: true
   variables:
     - name: IdpHostBaseUrl
-      value: http://localhost:55001
+      value: http://localhost:11141
       description: Base URL of the local Security server used to obtain a bearer token.
     - name: IdpHostRealm
       value: local-realm

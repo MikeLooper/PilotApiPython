@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "PilotApiPython"
-    app_version: str = "1.0.0"
+    app_version: str = "1.1.2"
     # Supplied by the build/deploy pipeline; see SystemService.about for fallbacks.
     app_deploy_date: str | None = None
     app_build_version: str | None = None
@@ -55,9 +55,9 @@ class Settings(BaseSettings):
     # when both run on the same Docker network).
     identity_provider_base_url: str = "http://local-keycloak:8080"
     # Externally-visible base URL, i.e. the one clients use to obtain tokens (e.g.
-    # "http://localhost:55001"). Tokens carry this value as their issuer, so it is what
+    # "http://localhost:11141"). Tokens carry this value as their issuer, so it is what
     # resolved_public_issuer_url validates against.
-    identity_provider_public_base_url: str | None = "http://localhost:55001"
+    identity_provider_public_base_url: str | None = "http://localhost:11141"
     identity_provider_realm: str = "local-realm"
     identity_provider_client_id: str = "local-client"
     identity_provider_audience: str | None = None
