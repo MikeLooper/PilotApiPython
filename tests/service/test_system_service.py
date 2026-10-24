@@ -19,10 +19,9 @@ def test_healthcheck_returns_ok(db_session: Session) -> None:
     assert SystemService(session=db_session).healthcheck() == "OK"
 
 
-def test_about_includes_config_when_show_details_true_and_enabled(
+def test_about_includes_config_when_show_details_true(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("SHOW_ABOUT_CONFIG", "true")
     monkeypatch.setenv("APP_VERSION", "1.0.0")
     monkeypatch.setenv("APP_LICENSE_NAME", "Apache-2.0")
     monkeypatch.setenv("DB_BACKEND", "sqlserver")
@@ -48,11 +47,7 @@ def test_about_includes_config_when_show_details_true_and_enabled(
     assert config.openApi.license == "Apache-2.0"
 
 
-def test_about_config_never_exposes_database_credentials(
-    db_session: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("SHOW_ABOUT_CONFIG", "true")
-
+def test_about_config_never_exposes_database_credentials(db_session: Session) -> None:
     result = SystemService(session=db_session).about(show_details=True)
 
     dumped = result.model_dump_json(by_alias=True)
@@ -63,7 +58,6 @@ def test_about_config_never_exposes_database_credentials(
 def test_about_config_includes_security_and_open_telemetry(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("SHOW_ABOUT_CONFIG", "true")
     monkeypatch.setenv("SECURITY_ACTIVE", "false")
     monkeypatch.setenv("IDENTITY_PROVIDER_BASE_URL", "http://idp:8080")
     monkeypatch.setenv("IDENTITY_PROVIDER_REALM", "test-realm")
@@ -87,7 +81,6 @@ def test_about_config_includes_security_and_open_telemetry(
 def test_about_config_reports_postgresql_data_source_type(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("SHOW_ABOUT_CONFIG", "true")
     monkeypatch.setenv("DB_BACKEND", "postgresql")
 
     config = SystemService(session=db_session).about(show_details=True).applicationConfiguration
@@ -98,21 +91,7 @@ def test_about_config_reports_postgresql_data_source_type(
     assert config.dataSources[0].dataSourceType == "PostgreSQL"
 
 
-def test_about_omits_config_when_show_about_config_false(
-    db_session: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("SHOW_ABOUT_CONFIG", "false")
-
-    result = SystemService(session=db_session).about(show_details=True)
-
-    assert result.applicationConfiguration is None
-
-
-def test_about_omits_config_when_show_details_false(
-    db_session: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("SHOW_ABOUT_CONFIG", "true")
-
+def test_about_omits_config_when_show_details_false(db_session: Session) -> None:
     result = SystemService(session=db_session).about(show_details=False)
 
     assert result.applicationConfiguration is None

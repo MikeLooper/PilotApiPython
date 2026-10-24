@@ -49,7 +49,7 @@ class SystemService:
 
     def about(self, show_details: bool) -> AboutResponseDto:
         config = None
-        if show_details and self.settings.show_about_config:
+        if show_details:
             settings = self.settings
             data_source_enum = _data_source_enum(settings.db_backend)
             data_source_name = settings.db_backend

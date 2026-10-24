@@ -94,7 +94,6 @@ DB_DRIVER=ODBC Driver 18 for SQL Server
 DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
-SHOW_ABOUT_CONFIG=true
 SECURITY_ACTIVE=true
 IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
 IDENTITY_PROVIDER_REALM=local-realm
@@ -120,7 +119,6 @@ DB_USER=DevUser
 DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
-SHOW_ABOUT_CONFIG=true
 SECURITY_ACTIVE=true
 IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
 IDENTITY_PROVIDER_REALM=local-realm
@@ -136,7 +134,7 @@ You can also set `DATABASE_URL` directly to override attribute-based constructio
 
 `DB_PASSWORD` and `DATABASE_URL` have no defaults; the application refuses to start unless at least one of them is set. `DB_TRUST_SERVER_CERTIFICATE` defaults to `false` — set it to `true` only for local development against a self-signed certificate (as in the local Docker setup above). Contact details reported by `/about` (`APP_CONTACT_NAME`, `APP_CONTACT_EMAIL`, `APP_CONTACT_URL`) are omitted unless set. The OpenAPI document's `info` block is fixed to match the shared definition (see `src/pilot_api/api/openapi.py`) and does not change with the `APP_*` settings.
 
-The build/deploy pipeline can supply `APP_BUILD_VERSION` and `APP_DEPLOY_DATE` for `/about`; when unset, `buildVersion` falls back to `APP_VERSION` and `deployDate` to the process start time. With `SHOW_ABOUT_CONFIG=false`, `/about?show-details=true` omits `applicationConfiguration`.
+The build/deploy pipeline can supply `APP_BUILD_VERSION` and `APP_DEPLOY_DATE` for `/about`; when unset, `buildVersion` falls back to `APP_VERSION` and `deployDate` to the process start time.
 
 The application listens on port `8000` by default, but this can be overrriden.
 

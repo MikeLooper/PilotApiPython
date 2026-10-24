@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     app_license_url: str = "https://opensource.org"
     log_level: str = "INFO"
     log_json: bool = True
-    show_about_config: bool = True
 
     otel_enabled: bool = True
     otel_service_name: str = "pilot-api-python"
