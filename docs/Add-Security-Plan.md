@@ -306,7 +306,7 @@ curl "http://localhost:53060/v1/categories/get-all" \
 
 ## 14. Out-of-Scope / Follow-ups
 
-- The shared OpenAPI contract ([shared/SharedModule/OpenAPI/PilotApi_v1.yaml](shared/SharedModule/OpenAPI/PilotApi_v1.yaml)) currently declares no `securitySchemes`. It lives in a separate submodule repo (`PilotSharedSource`); updating it to document the new `bearerAuth` requirement is a natural follow-up but is out of scope here since it isn't owned by this repo.
+- The shared OpenAPI contract ([shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml](shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml)) currently declares no `securitySchemes`. It lives in a separate submodule repo (`PilotSharedSource`); updating it to document the new `bearerAuth` requirement is a natural follow-up but is out of scope here since it isn't owned by this repo.
 - Real production hardening of the raw-JWT logging noted in §9.
 - Wiring a real `UserRoles` table/database once one exists, replacing the hard-coded `UserRoleRepository` dict (the class boundary is deliberately drawn so this is a drop-in swap later).
 
