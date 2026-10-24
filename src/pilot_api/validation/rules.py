@@ -17,8 +17,8 @@ def get_api_version(
     return api_version
 
 
-# Declared so the header is documented on each operation; RequestContextMiddleware is
-# what actually reads it (header names are case-insensitive) and propagates it.
+# Declared so the header is documented on each operation; RequestSettings.from_request
+# is what actually reads it (header names are case-insensitive) and propagates it.
 def get_correlation_id(
     correlation_id: Annotated[
         str | None,

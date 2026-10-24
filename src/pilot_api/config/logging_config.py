@@ -1,20 +1,14 @@
 import logging
 import re
-from contextvars import ContextVar
 from logging.config import dictConfig
 
+from pilot_api.config.request_settings import get_current_request_settings
 from pilot_api.config.settings import get_settings
 
 _SECRET_PATTERN = re.compile(
     r"(?i)(password|pwd)(\s*[=:]\s*)([^\s&\"']+)"
 )
 _BASIC_AUTH_PATTERN = re.compile(r"(?i)(Authorization:\s*Basic\s+)([A-Za-z0-9+/=]+)")
-
-# Set per request by RequestContextMiddleware so every log line emitted while
-# handling that request carries its ids, without callers passing extra=.
-request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
-correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default="-")
-
 
 def _redact(text: str) -> str:
     text = _SECRET_PATTERN.sub(r"\1\2[REDACTED]", text)
@@ -23,11 +17,14 @@ def _redact(text: str) -> str:
 
 
 class RequestContextFilter(logging.Filter):
+    """Stamps the current request's ids on every log line, without callers passing extra=."""
+
     def filter(self, record: logging.LogRecord) -> bool:
+        request_settings = get_current_request_settings()
         if not hasattr(record, "request_id"):
-            record.request_id = request_id_var.get()
+            record.request_id = request_settings.request_id if request_settings else "-"
         if not hasattr(record, "correlation_id"):
-            record.correlation_id = correlation_id_var.get()
+            record.correlation_id = request_settings.correlation_id if request_settings else "-"
         if not hasattr(record, "operation_id"):
             record.operation_id = "-"
         # Populated by LoggingInstrumentor when OTEL_ENABLED=true; default to

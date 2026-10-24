@@ -1,11 +1,7 @@
 import logging
 
-from pilot_api.config.logging_config import (
-    RequestContextFilter,
-    SensitiveDataFilter,
-    correlation_id_var,
-    request_id_var,
-)
+from pilot_api.config.logging_config import RequestContextFilter, SensitiveDataFilter
+from pilot_api.config.request_settings import RequestSettings, request_settings_var
 
 
 def _filtered_record(msg: str, args: tuple = ()) -> logging.LogRecord:
@@ -53,14 +49,14 @@ def _context_record() -> logging.LogRecord:
     return record
 
 
-def test_request_context_filter_reads_ids_from_context_vars() -> None:
-    request_token = request_id_var.set("req-123")
-    correlation_token = correlation_id_var.set("corr-456")
+def test_request_context_filter_reads_ids_from_request_settings() -> None:
+    token = request_settings_var.set(
+        RequestSettings(request_id="req-123", correlation_id="corr-456")
+    )
     try:
         record = _context_record()
     finally:
-        request_id_var.reset(request_token)
-        correlation_id_var.reset(correlation_token)
+        request_settings_var.reset(token)
 
     assert record.request_id == "req-123"
     assert record.correlation_id == "corr-456"

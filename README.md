@@ -49,6 +49,15 @@ The remaining Northwind tables (`CustomerCustomerDemo`, `CustomerDemographics`, 
 
 To avoid unintended schema changes, the application does not execute automatic DDL on startup.
 
+## Request Settings
+
+`RequestSettings` (`src/pilot_api/config/request_settings.py`) holds the per-request values `request_id` and `correlation_id`. `RequestContextMiddleware` creates one at the start of every request:
+
+- `correlation_id` is read from the `X-Correlation-Id` request header; when the header is missing or blank, a new GUID is generated.
+- `request_id` is a new GUID assigned by the server to the request; any inbound `X-Request-Id` header is ignored.
+
+The object is available for the life of the request: inject it into an endpoint with `RequestSettingsDep` (`pilot_api.api.dependencies`), or call `get_current_request_settings()` from code without access to the request. Every log line carries both ids, and every response (including unhandled 500 errors) returns them as the `X-Correlation-Id` and `X-Request-Id` headers.
+
 ## Setup
 
 1. Create and activate a Python environment.
@@ -236,7 +245,7 @@ When `OTEL_ENABLED=false`, none of the OTEL SDKs or instrumentation are activate
 
 - **Traces**: every HTTP request (via `FastAPIInstrumentor`) and every SQLAlchemy query (via `SQLAlchemyInstrumentor`), as child spans of the request span.
 - **Metrics**: FastAPI/ASGI request duration and count, plus standard OTEL SDK metrics, exported every 60s.
-- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The existing `X-Request-ID`/`X-Correlation-ID` headers are also recorded as `app.request_id`/`app.correlation_id` span attributes.
+- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The current request's `RequestSettings` ids (see [Request Settings](#request-settings)) are also recorded as `app.request_id`/`app.correlation_id` span attributes.
 
 ### Running the local OTEL collector
 

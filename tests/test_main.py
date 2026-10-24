@@ -6,11 +6,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from pilot_api import main
-from pilot_api.config.logging_config import (
-    RequestContextFilter,
-    correlation_id_var,
-    request_id_var,
-)
+from pilot_api.api.dependencies import RequestSettingsDep
+from pilot_api.config.logging_config import RequestContextFilter
+from pilot_api.config.request_settings import get_current_request_settings
 from pilot_api.exception.handlers import register_exception_handlers
 from pilot_api.main import RequestContextMiddleware, lifespan
 
@@ -20,32 +18,46 @@ def _context_echo_app() -> FastAPI:
     app.add_middleware(RequestContextMiddleware)
 
     @app.get("/context")
-    def context() -> dict[str, str]:
-        return {"request_id": request_id_var.get(), "correlation_id": correlation_id_var.get()}
+    def context(request_settings: RequestSettingsDep) -> dict[str, str]:
+        current = get_current_request_settings()
+        return {
+            "request_id": request_settings.request_id,
+            "correlation_id": request_settings.correlation_id,
+            "current_request_id": current.request_id if current else "-",
+        }
 
     return app
 
 
-def test_middleware_exposes_request_ids_to_handlers_through_context_vars() -> None:
+def test_middleware_exposes_request_settings_to_handlers() -> None:
     client = TestClient(_context_echo_app())
 
-    response = client.get(
-        "/context", headers={"X-Request-ID": "req-1", "X-Correlation-ID": "corr-1"}
-    )
+    response = client.get("/context", headers={"X-Correlation-Id": "corr-1"})
 
-    assert response.json() == {"request_id": "req-1", "correlation_id": "corr-1"}
-    assert response.headers["X-Request-ID"] == "req-1"
-    assert response.headers["X-Correlation-ID"] == "corr-1"
-    assert request_id_var.get() == "-"
+    body = response.json()
+    assert body["correlation_id"] == "corr-1"
+    assert body["current_request_id"] == body["request_id"]
+    assert get_current_request_settings() is None
 
 
-def test_middleware_generates_request_id_and_defaults_correlation_id_to_it() -> None:
+def test_middleware_writes_request_settings_to_response_headers() -> None:
     client = TestClient(_context_echo_app())
 
-    body = client.get("/context").json()
+    response = client.get("/context", headers={"X-Correlation-Id": "corr-1"})
 
-    assert body["request_id"] != "-"
-    assert body["correlation_id"] == body["request_id"]
+    body = response.json()
+    assert response.headers["X-Correlation-Id"] == "corr-1"
+    assert response.headers["X-Request-Id"] == body["request_id"]
+
+
+def test_middleware_generates_correlation_id_when_header_missing() -> None:
+    client = TestClient(_context_echo_app())
+
+    response = client.get("/context")
+
+    body = response.json()
+    assert body["correlation_id"] not in ("-", "", body["request_id"])
+    assert response.headers["X-Correlation-Id"] == body["correlation_id"]
 
 
 def test_unhandled_error_log_carries_request_ids() -> None:
@@ -64,13 +76,31 @@ def test_unhandled_error_log_carries_request_ids() -> None:
         raise RuntimeError("boom")
 
     try:
-        TestClient(app, raise_server_exceptions=False).get(
-            "/boom", headers={"X-Request-ID": "req-err"}
+        response = TestClient(app, raise_server_exceptions=False).get(
+            "/boom", headers={"X-Correlation-Id": "corr-err"}
         )
     finally:
         handlers_logger.removeHandler(capture)
 
-    assert [record.request_id for record in records] == ["req-err"]
+    assert [record.correlation_id for record in records] == ["corr-err"]
+    assert [record.request_id for record in records] == [response.headers["X-Request-Id"]]
+
+
+def test_unhandled_error_response_carries_request_settings_headers() -> None:
+    app = _context_echo_app()
+    register_exception_handlers(app)
+
+    @app.get("/boom")
+    def boom() -> None:
+        raise RuntimeError("boom")
+
+    response = TestClient(app, raise_server_exceptions=False).get(
+        "/boom", headers={"X-Correlation-Id": "corr-err"}
+    )
+
+    assert response.status_code == 500
+    assert response.headers["X-Correlation-Id"] == "corr-err"
+    assert response.headers["X-Request-Id"] != ""
 
 
 def test_lifespan_disposes_engine_on_shutdown(monkeypatch: pytest.MonkeyPatch) -> None:

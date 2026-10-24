@@ -64,6 +64,11 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.exception("Unexpected error", extra={"operation_id": request.url.path})
-        return _problem_response(
+        response = _problem_response(
             500, "Internal Server Error", "Unexpected server error.", str(request.url.path)
         )
+        # Runs outside RequestContextMiddleware, so the id headers must be added here.
+        request_settings = getattr(request.state, "request_settings", None)
+        if request_settings is not None:
+            request_settings.apply_to(response)
+        return response
