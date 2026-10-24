@@ -31,7 +31,33 @@ runtime:
           expect(resBody).to.have.property("applicationConfiguration");
           const configuration = resBody?.applicationConfiguration;
           expect(configuration).to.have.property("dataSources");
-          
+          const dataSource = configuration?.dataSources[0];
+          expect(dataSource).to.have.property("dataSourceEnum");
+          expect(dataSource).to.have.property("dataSourceName");
+          expect(dataSource).to.have.property("dataSourceType");
+
+          expect(configuration).to.have.property("dataConnections");
+          const dataConnection = configuration?.dataConnections[0];
+          expect(dataConnection).to.have.property("connectTimeout");
+          expect(dataConnection).to.have.property("dataSourceName");
+          expect(dataConnection.dataSourceName).to.equal(dataSource.dataSourceName);
+          expect(dataConnection).to.have.property("host");
+          expect(dataConnection).to.have.property("port");
+          expect(dataConnection).to.not.have.property("userName");
+          expect(dataConnection).to.not.have.property("password");
+
+          expect(configuration).to.have.property("security");
+          const security = configuration?.security;
+          expect(security).to.have.property("baseUrl");
+          expect(security).to.have.property("realm");
+          expect(security).to.have.property("clientId");
+          expect(security).to.have.property("authority");
+
+          expect(configuration).to.have.property("openTelemetry");
+          const openTelemetry = configuration?.openTelemetry;
+          expect(openTelemetry).to.have.property("server");
+          expect(openTelemetry).to.have.property("port");
+
           expect(configuration).to.have.property("openApi");
           const openapi = configuration?.openApi;
           expect(openapi).to.have.property("summary");

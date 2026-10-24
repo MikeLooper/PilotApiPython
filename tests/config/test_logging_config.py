@@ -1,6 +1,7 @@
 import logging
 
-from pilot_api.config.logging_config import SensitiveDataFilter
+from pilot_api.config.logging_config import RequestContextFilter, SensitiveDataFilter
+from pilot_api.config.request_settings import RequestSettings, request_settings_var
 
 
 def _filtered_record(msg: str, args: tuple = ()) -> logging.LogRecord:
@@ -40,6 +41,32 @@ def test_redacts_basic_auth_header() -> None:
     record = _filtered_record("Header dump Authorization: Basic dXNlcjpwYXNz")
 
     assert "dXNlcjpwYXNz" not in record.getMessage()
+
+
+def _context_record() -> logging.LogRecord:
+    record = logging.LogRecord("test", logging.INFO, __file__, 1, "msg", (), None)
+    RequestContextFilter().filter(record)
+    return record
+
+
+def test_request_context_filter_reads_ids_from_request_settings() -> None:
+    token = request_settings_var.set(
+        RequestSettings(request_id="req-123", correlation_id="corr-456")
+    )
+    try:
+        record = _context_record()
+    finally:
+        request_settings_var.reset(token)
+
+    assert record.request_id == "req-123"
+    assert record.correlation_id == "corr-456"
+
+
+def test_request_context_filter_defaults_outside_a_request() -> None:
+    record = _context_record()
+
+    assert record.request_id == "-"
+    assert record.correlation_id == "-"
 
 
 def test_leaves_unrelated_text_untouched() -> None:

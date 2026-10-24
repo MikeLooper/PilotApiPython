@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pilot-api-python"
-version = "1.0.0"
+version = "1.1.2"
 description = "OpenAPI-driven FastAPI implementation for the Pilot API"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -37,6 +37,7 @@ dev = [
   "pytest>=8.4.0,<9.0.0",
   "pytest-cov>=6.2.0,<7.0.0",
   "httpx>=0.28.0,<1.0.0",
+  "pyyaml>=6.0.0,<7.0.0",
   "ruff>=0.12.0,<1.0.0"
 ]
 
@@ -47,6 +48,9 @@ packages = ["src/pilot_api"]
 minversion = "8.0"
 addopts = "-q"
 testpaths = ["tests"]
+markers = [
+  "integration: compares the application against external artifacts such as the shared OpenAPI specification",
+]
 
 [tool.ruff]
 line-length = 100
@@ -54,3 +58,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+# The local alembic/ migrations folder would otherwise make the alembic package look first-party.
+known-third-party = ["alembic"]

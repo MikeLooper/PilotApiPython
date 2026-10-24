@@ -1,4 +1,3 @@
-[submodule "shared/SharedModule"]
-	path = shared/SharedModule
-	url = https://github.com/MikeLooper/PilotSharedSource
-	branch = main
+[submodule "shared/PilotSharedSource"]
+	path = shared/PilotSharedSource
+	url = https://github.com/MikeLooper/PilotSharedSource.git

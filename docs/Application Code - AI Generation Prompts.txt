@@ -90,4 +90,55 @@ OTEL collector is deployed to Docker container `otel-collector`, using the follo
 OTEL deploy script: `C:\Working\Storage\Dev\GitHub\Docker\Otel\Docker-Otel-builder.bat`.
 When the OTEL updates are complete, update the README to include details, such as what keywords would be used in Grafana to review logged events.
 
+13.
+Examine the `shared\PilotSharedSource\OpenAPI\PilotApi_v1.yaml` OpenAPI specification.
+Check the application to verify the OpenApi specfication matches the source OpenAPI definition, and correct the code to match the source OpenAPI definition as needed.
 
+Update unit tests and Bruno tests to match any code changes.
+
+
+14.
+Create a new directory under the `test` directory for integration tests.
+Add an integration test file for validating OpenAPI compliance.
+Create one or more tests that will compare the OpenAPI specification found in `\shared\PilotSharedSource\OpenAPI\PilotApi_v1.yaml` against the OpenAPI specification implemented in this application. Ask questions to determine what level of concern (Error, Warn, Information) any differing portions of the OpenAPI specification should be indicated as when a mismatch is found.
+
+How severity is assigned for mis-matches during testing:
+| Level | What it covers |
+| --- | --- |
+| Error (fails the test) | <ul><li>A spec operation isn't implemented</li><li>A required parameter or request body is missing, or its required flag differs</li><li>A 2xx response is missing</li><li>A schema or property is missing</li><li>A base type doesn't match</li><li>Any security mismatch</li><li>Differences in media type, nullability, the required list, format, patterns, defaults, enum or oneOf/anyOf/allOf</li></ul> |
+| Warn | <ul><li>Extra operations, parameters, responses or properties</li><li>A missing optional parameter or 4xx/5xx response</li><li>Document metadata: info, servers, tags, operationIds</li></ul> |
+| Info | <ul><li>Descriptions, and examples</li><li>Alternate types such as [integer, string] vs integer</li><li>Component names</li></ul> |
+
+If there are any mis-match areas that need more clarification, ask me.
+
+15.
+Establish a shared common class, `RequestSettings`, that would contain request data (RequestId, CorrelationId).
+An object would be initialized, based upon the `RequestSettings` class, at the start of a request and would stay available throughout the life of the request.
+
+At the start of each request, this object would be assigned the current request values, such as:
+- Read the `X-Correlation-Id` header and assign it to the CorrelationId property of this request object.  If no `X-Correlation-Id` header was found, create a default GUID value.
+- RequestId should be assigned from the active request Id value.
+
+For the end of an endpoint call, the following assignments would be made to the response headers:
+- `X-Correlation-Id` = request CorrelationId.
+- `X-Request-Id` = RequestId.
+
+16.
+Update OTEL to record the following:
+- In `Activity.Tags` add:
+	- correlationId = <the current RequestSettings.CorrelationId>
+    - request.Id = <the current RequestSettings.RequestId>
+- In `LogRecord.Attributes` add:
+	- CorrelationId = <the current RequestSettings.CorrelationId>
+	- Request.Id = <the current RequestSettings.RequestId>
+	- If the LogRecord.Exception != null:
+		- If exception message is not already recorded: Exception.Message = <record.Exception.Message>
+		- If exception stacktrace is not already recorded: Exception.Stacktrace = <record.Exception.StackTrace>
+		- If exception inner exception exists and is not already recorded: Exception.InnerException = <If record.Exception.InnerException != null: record.Exception.InnerException.ToString()>
+		- If the exception message, stacktrace, and inner exception are not added, due to redundancy or not being available, do not make any changes to the exception recording process.
+
+17.
+Update ProblemDetails handling to include extension values, like the following .NET code:
+`ctx.ProblemDetails.Extensions.Add("correlationId", requestSettings.CorrelationId);
+ctx.ProblemDetails.Extensions.Add("requestId", requestSettings.RequestId);
+ctx.ProblemDetails.Extensions.Add("timestamp", DateTime.UtcNow);`

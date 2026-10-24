@@ -10,9 +10,9 @@ from pilot_api.model.types import CrossDatabaseFloat
 class Order(Base):
     __tablename__ = "Orders"
 
-    orderID: Mapped[int] = mapped_column(Integer, primary_key=True)
-    customerID: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    employeeID: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    orderId: Mapped[int] = mapped_column("orderID", Integer, primary_key=True)
+    customerId: Mapped[str | None] = mapped_column("customerID", String(32), nullable=True)
+    employeeId: Mapped[int | None] = mapped_column("employeeID", Integer, nullable=True)
     orderDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     requiredDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     shippedDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

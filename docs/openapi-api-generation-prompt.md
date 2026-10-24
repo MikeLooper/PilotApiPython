@@ -7,7 +7,7 @@ Important constraints:
 - Favor maintainability, testability, clear separation of concerns, and clean architecture principles.
 
 Inputs you must use:
-- OpenAPI spec location: ./shared/SharedModule/OpenAPI/PilotApi_v1.yaml
+- OpenAPI spec location: ./shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml
 - Python version: latest stable 3.x
 - Target database: SQL Server
 - Auth strategy: None

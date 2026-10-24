@@ -19,7 +19,7 @@ runtime:
         test("should return array", function () {
           const resBody = res.getBody();
           
-          expect(resBody).to.have.property("categoryID");
+          expect(resBody).to.have.property("categoryId");
         });
 
 settings:

@@ -10,11 +10,11 @@ http:
     type: json
     data: |-
       {
-        "customerID": "VINET",
-        "employeeID": 5,
+        "customerId": "VINET",
+        "employeeId": 5,
         "freight": 32.3800,
         "orderDate": "1996-07-04T00:00:00",
-        "orderID": {{newId}},
+        "orderId": {{newId}},
         "requiredDate": "1996-08-01T00:00:00",
         "shipAddress": "123 Main Street",
         "shipCity": "Test City",

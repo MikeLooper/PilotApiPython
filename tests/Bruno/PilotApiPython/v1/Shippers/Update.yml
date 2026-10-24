@@ -12,7 +12,7 @@ http:
       {
         "companyName": "Test Shipper Updated",
         "phone": "(503) 555-9831",
-        "shipperID": {{newId}}
+        "shipperId": {{newId}}
       }
   auth: inherit
 

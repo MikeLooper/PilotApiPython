@@ -8,10 +8,10 @@ from pilot_api.model.types import CrossDatabaseFloat
 class Product(Base):
     __tablename__ = "Products"
 
-    productID: Mapped[int] = mapped_column(Integer, primary_key=True)
+    productId: Mapped[int] = mapped_column("productID", Integer, primary_key=True)
     productName: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    supplierID: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    categoryID: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    supplierId: Mapped[int | None] = mapped_column("supplierID", Integer, nullable=True)
+    categoryId: Mapped[int | None] = mapped_column("categoryID", Integer, nullable=True)
     quantityPerUnit: Mapped[str | None] = mapped_column(String(255), nullable=True)
     unitPrice: Mapped[float | None] = mapped_column(CrossDatabaseFloat, nullable=True)
     unitsInStock: Mapped[int] = mapped_column(SmallInteger, nullable=False)

@@ -11,8 +11,8 @@ http:
     data: |-
       {
         "discount": 0,
-        "orderID": 10248,
-        "productID": 12,
+        "orderId": 10248,
+        "productId": 12,
         "quantity": 99,
         "unitPrice": 99.0000
       }
@@ -20,11 +20,6 @@ http:
 
 runtime:
   scripts:
-    - type: after-response
-      code: |-
-        // Example: Storing an extracted token or ID from a JSON response
-        const jsonData = res.getBody();
-        bru.setVar("newId", jsonData.id);
     - type: tests
       code: |-
         test("should return success", function () {
@@ -34,7 +29,10 @@ runtime:
         test("should return id", function () {
           const resBody = res.getBody();
           
-          expect(resBody).to.have.property("id");
+          expect(resBody).to.have.property("orderId");
+          expect(resBody.orderId).to.equal(10248);
+          expect(resBody).to.have.property("productId");
+          expect(resBody.productId).to.equal(12);
         });
 
 settings:

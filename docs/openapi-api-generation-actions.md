@@ -2,7 +2,7 @@
 
 Date: 2026-08-06
 Prompt source: ./docs/openapi-api-generation-prompt.md
-OpenAPI source: ./shared/SharedModule/OpenAPI/PilotApi_v1.yaml
+OpenAPI source: ./shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml
 
 ## Summary
 The OpenAPI generation prompt was executed to scaffold a production-oriented Python API using a layered FastAPI architecture. The implementation followed OpenAPI-first contract alignment and created project structure, configuration, persistence, migrations, exception handling, validation, and tests.

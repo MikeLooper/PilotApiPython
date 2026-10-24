@@ -4,8 +4,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from pilot_api.config.settings import get_settings
-from pilot_api.model.base import Base
 from pilot_api.model import entities  # noqa: F401
+from pilot_api.model.base import Base
 
 config = context.config
 settings = get_settings()

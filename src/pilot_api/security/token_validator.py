@@ -45,5 +45,5 @@ class TokenValidator:
             raise TokenValidationError("token expired") from exc
         except jwt.InvalidTokenError as exc:
             raise TokenValidationError(f"invalid token: {exc}") from exc
-        except Exception as exc:
+        except jwt.PyJWKClientError as exc:
             raise TokenValidationError(f"unable to resolve signing key: {exc}") from exc

@@ -22,7 +22,11 @@ class CrudRepository:
         return self.session.execute(stmt).scalars().all()
 
     def get_one(self, keys: dict[str, Any]) -> Any:
-        entity = self.session.get(self.model, tuple(keys[field] for field in self.pk_fields) if len(self.pk_fields) > 1 else keys[self.pk_fields[0]])
+        if len(self.pk_fields) > 1:
+            identity = tuple(keys[field] for field in self.pk_fields)
+        else:
+            identity = keys[self.pk_fields[0]]
+        entity = self.session.get(self.model, identity)
         if entity is None:
             raise NotFoundError(f"{self.model.__name__} not found.")
         return entity

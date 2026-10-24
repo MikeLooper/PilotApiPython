@@ -1,15 +1,10 @@
-from pydantic import field_validator
+from pydantic import Field
 
-from pilot_api.dto.schemas.base import DtoBase, coerce_number
+from pilot_api.dto.schemas.base import DtoBase
 
 
 class CategoriesDto(DtoBase):
-    categoryID: int | None = None
+    categoryId: int | None = None
     categoryName: str | None
     description: str | None = None
-    picture: str | None = None
-
-    @field_validator("categoryID", mode="before")
-    @classmethod
-    def validate_category_id(cls, value: object) -> object:
-        return coerce_number(value)
+    picture: str | None = Field(default=None, json_schema_extra={"format": "byte"})

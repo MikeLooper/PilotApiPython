@@ -10,12 +10,12 @@ http:
     type: json
     data: |-
       {
-        "categoryID": 1,
+        "categoryId": 1,
         "discontinued": true,
         "productName": "Test Product",
         "quantityPerUnit": "lots",
         "reorderLevel": 11,
-        "supplierID": 1,
+        "supplierId": 1,
         "unitPrice": 23.45,
         "unitsInStock": 12,
         "unitsOnOrder": 34

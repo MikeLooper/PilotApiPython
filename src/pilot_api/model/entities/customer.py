@@ -7,7 +7,7 @@ from pilot_api.model.base import Base
 class Customer(Base):
     __tablename__ = "Customers"
 
-    customerID: Mapped[str] = mapped_column(String(32), primary_key=True)
+    customerId: Mapped[str] = mapped_column("customerID", String(32), primary_key=True)
     companyName: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contactName: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contactTitle: Mapped[str | None] = mapped_column(String(255), nullable=True)

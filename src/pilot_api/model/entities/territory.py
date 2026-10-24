@@ -8,5 +8,7 @@ class Territory(Base):
     __tablename__ = "Territories"
 
     territoryID: Mapped[str] = mapped_column("TerritoryID", String(20), primary_key=True)
-    territoryDescription: Mapped[str] = mapped_column("TerritoryDescription", String(50), nullable=False)
+    territoryDescription: Mapped[str] = mapped_column(
+        "TerritoryDescription", String(50), nullable=False
+    )
     regionID: Mapped[int] = mapped_column("RegionID", Integer, nullable=False)

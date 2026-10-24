@@ -103,11 +103,11 @@ def test_decode_ignores_audience_when_not_configured(keypair: tuple[bytes, bytes
     assert claims["aud"] == "whatever"
 
 
-def test_decode_raises_when_signing_key_cannot_be_resolved() -> None:
+def _validator_with_resolver_raising(error: Exception) -> TokenValidator:
     def failing_resolver(_raw_token: str) -> bytes:
-        raise RuntimeError("no matching key")
+        raise error
 
-    validator = TokenValidator(
+    return TokenValidator(
         jwks_url="unused://jwks",
         issuer=_ISSUER,
         audience=None,
@@ -115,5 +115,23 @@ def test_decode_raises_when_signing_key_cannot_be_resolved() -> None:
         signing_key_resolver=failing_resolver,
     )
 
-    with pytest.raises(TokenValidationError):
+
+def test_decode_raises_when_signing_key_cannot_be_resolved() -> None:
+    validator = _validator_with_resolver_raising(jwt.PyJWKClientError("no matching key"))
+
+    with pytest.raises(TokenValidationError, match="unable to resolve signing key"):
+        validator.decode("not-a-real-token")
+
+
+def test_decode_reports_malformed_token_as_invalid() -> None:
+    validator = _validator_with_resolver_raising(jwt.DecodeError("not enough segments"))
+
+    with pytest.raises(TokenValidationError, match="invalid token"):
+        validator.decode("not-a-real-token")
+
+
+def test_decode_lets_unexpected_errors_propagate() -> None:
+    validator = _validator_with_resolver_raising(RuntimeError("programming error"))
+
+    with pytest.raises(RuntimeError, match="programming error"):
         validator.decode("not-a-real-token")

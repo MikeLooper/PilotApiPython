@@ -6,8 +6,8 @@ router = register_single_key_routes(
     prefix="categories",
     tag="Categories",
     path_param_name="categoryId",
-    key_name="categoryID",
+    key_name="categoryId",
     model_type=Category,
     dto_type=CategoriesDto,
-    id_cast=int,
+    key_type=int,
 )

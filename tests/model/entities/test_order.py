@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.dialects import postgresql
 
-from pilot_api.model.entities import Order, OrderDetail
+from pilot_api.model.entities import Order
 
 
 def test_order_freight_is_cast_for_postgresql_reads() -> None:

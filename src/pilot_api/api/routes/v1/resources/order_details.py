@@ -1,75 +1,44 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
-from pilot_api.api.dependencies import get_session
-from pilot_api.api.routes.v1.resources.common import create_service
-from pilot_api.dto.schemas import AddResponseIntDto, OrderDetailsDto, ProblemDetailsDto
+from pilot_api.api.dependencies import SessionDep
+from pilot_api.api.routes.v1.resources.common import PageQuery, PageSizeQuery, create_service
+from pilot_api.dto.schemas import AddResponseOrderDetailsDto, OrderDetailsDto
 from pilot_api.model.entities import OrderDetail
-from pilot_api.validation.rules import get_api_version
 
 router = APIRouter(tags=["OrderDetails"])
+
+_PK_FIELDS = ["orderId", "productId"]
 
 
 @router.get("/order-details/get-all", response_model=list[OrderDetailsDto])
 def get_order_details_all(
-    page: int = Query(default=0, ge=0),
-    pageSize: int = Query(default=20, ge=1),
-    api_version: str | None = Depends(get_api_version),
-    session: Session = Depends(get_session),
+    session: SessionDep,
+    page: PageQuery = 0,
+    pageSize: PageSizeQuery = 20,
 ) -> list[OrderDetailsDto]:
-    _ = api_version
-    return create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).get_all(page, pageSize)
+    return create_service(session, OrderDetail, OrderDetailsDto, _PK_FIELDS).get_all(page, pageSize)
 
 
-@router.get("/order-details/get/product/{productId}/order/{orderId}", response_model=OrderDetailsDto)
-def get_order_detail(
-    productId: int,
-    orderId: int,
-    api_version: str | None = Depends(get_api_version),
-    session: Session = Depends(get_session),
-) -> OrderDetailsDto:
-    _ = api_version
-    keys = {"orderID": orderId, "productID": productId}
-    return create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).get_one(keys)
-
-
-@router.post("/order-details/add", response_model=AddResponseIntDto, status_code=201)
-def add_order_detail(
-    payload: OrderDetailsDto,
-    api_version: str | None = Depends(get_api_version),
-    session: Session = Depends(get_session),
-) -> AddResponseIntDto:
-    _ = api_version
-    create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).add(payload)
-    return AddResponseIntDto(id=payload.orderID)
-
-
-@router.put(
-    "/order-details/update",
-    status_code=204,
-    response_model=None,
-    responses={400: {"model": ProblemDetailsDto}},
+@router.get(
+    "/order-details/get/product/{productId}/order/{orderId}", response_model=OrderDetailsDto
 )
-def update_order_detail(
-    payload: OrderDetailsDto,
-    api_version: str | None = Depends(get_api_version),
-    session: Session = Depends(get_session),
-) -> None:
-    _ = api_version
-    create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).update(payload)
+def get_order_detail(productId: int, orderId: int, session: SessionDep) -> OrderDetailsDto:
+    keys = {"orderId": orderId, "productId": productId}
+    return create_service(session, OrderDetail, OrderDetailsDto, _PK_FIELDS).get_one(keys)
 
 
-@router.delete(
-    "/order-details/delete/product/{productId}/order/{orderId}",
-    status_code=204,
-    responses={400: {"model": ProblemDetailsDto}},
-)
-def delete_order_detail(
-    productId: int,
-    orderId: int,
-    api_version: str | None = Depends(get_api_version),
-    session: Session = Depends(get_session),
-) -> None:
-    _ = api_version
-    keys = {"orderID": orderId, "productID": productId}
-    create_service(session, OrderDetail, OrderDetailsDto, ["orderID", "productID"]).delete(keys)
+@router.post("/order-details/add", response_model=AddResponseOrderDetailsDto, status_code=201)
+def add_order_detail(payload: OrderDetailsDto, session: SessionDep) -> AddResponseOrderDetailsDto:
+    create_service(session, OrderDetail, OrderDetailsDto, _PK_FIELDS).add(payload)
+    return AddResponseOrderDetailsDto(orderId=payload.orderId, productId=payload.productId)
+
+
+@router.put("/order-details/update", status_code=204, response_model=None)
+def update_order_detail(payload: OrderDetailsDto, session: SessionDep) -> None:
+    create_service(session, OrderDetail, OrderDetailsDto, _PK_FIELDS).update(payload)
+
+
+@router.delete("/order-details/delete/product/{productId}/order/{orderId}", status_code=204)
+def delete_order_detail(productId: int, orderId: int, session: SessionDep) -> None:
+    keys = {"orderId": orderId, "productId": productId}
+    create_service(session, OrderDetail, OrderDetailsDto, _PK_FIELDS).delete(keys)

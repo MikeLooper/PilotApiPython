@@ -4,7 +4,7 @@ A proof of concept API to explore best-practices and new ideas (Python) - mainly
 
 ## Generated Python API
 
-This repository now includes a production-oriented FastAPI implementation generated from the OpenAPI contract in `shared/SharedModule/OpenAPI/PilotApi_v1.yaml`.
+This repository now includes a production-oriented FastAPI implementation generated from the OpenAPI contract in `shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml`.
 
 ### Stack
 
@@ -34,23 +34,29 @@ This repository now includes a production-oriented FastAPI implementation genera
 
 ### Northwind Coverage
 
-The API now maps to the full set of classic Northwind tables:
+The API exposes the Northwind tables described by the OpenAPI definition (`shared/PilotSharedSource/OpenAPI/PilotApi_v1.yaml`):
 
 - `Categories`
-- `CustomerCustomerDemo`
-- `CustomerDemographics`
 - `Customers`
 - `Employees`
-- `EmployeeTerritories`
 - `Order Details`
 - `Orders`
 - `Products`
-- `Region`
 - `Shippers`
 - `Suppliers`
-- `Territories`
+
+The remaining Northwind tables (`CustomerCustomerDemo`, `CustomerDemographics`, `EmployeeTerritories`, `Region`, `Territories`) are mapped as SQLAlchemy entities for the schema migration only; they have no endpoints.
 
 To avoid unintended schema changes, the application does not execute automatic DDL on startup.
+
+## Request Settings
+
+`RequestSettings` (`src/pilot_api/config/request_settings.py`) holds the per-request values `request_id` and `correlation_id`. `RequestContextMiddleware` creates one at the start of every request:
+
+- `correlation_id` is read from the `X-Correlation-Id` request header; when the header is missing or blank, a new GUID is generated.
+- `request_id` is a new GUID assigned by the server to the request; any inbound `X-Request-Id` header is ignored.
+
+The object is available for the life of the request: inject it into an endpoint with `RequestSettingsDep` (`pilot_api.api.dependencies`), or call `get_current_request_settings()` from code without access to the request. Every log line carries both ids, and every response (including unhandled 500 errors) returns them as the `X-Correlation-Id` and `X-Request-Id` headers.
 
 ## Setup
 
@@ -74,7 +80,7 @@ copy .env.example .env
 
 ```bash
 APP_NAME=PilotApiPython
-APP_VERSION=1.0.0
+APP_VERSION=1.1.2
 LOG_LEVEL=INFO
 LOG_JSON=true
 DB_NAME=NorthWind
@@ -88,9 +94,8 @@ DB_DRIVER=ODBC Driver 18 for SQL Server
 DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=mssql+pyodbc://DevUser:<DevUser password>@localhost:1433/NorthWind?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&timeout=30
-SHOW_ABOUT_CONFIG=false
 SECURITY_ACTIVE=true
-IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_BASE_URL=http://localhost:11141
 IDENTITY_PROVIDER_REALM=local-realm
 IDENTITY_PROVIDER_CLIENT_ID=local-client
 IDENTITY_PROVIDER_AUDIENCE=
@@ -100,7 +105,7 @@ IDENTITY_PROVIDER_AUDIENCE=
 
 ```bash
 APP_NAME=PilotApiPython
-APP_VERSION=1.0.0
+APP_VERSION=1.1.2
 LOG_LEVEL=INFO
 LOG_JSON=true
 DB_BACKEND=postgresql
@@ -114,9 +119,8 @@ DB_USER=DevUser
 DB_TRUST_SERVER_CERTIFICATE=true
 # Optional full override:
 # DATABASE_URL=postgresql+psycopg://DevUser:<DevUser password>@localhost:5432/northwind?connect_timeout=30&options=-csearch_path%3Dpilot
-SHOW_ABOUT_CONFIG=false
 SECURITY_ACTIVE=true
-IDENTITY_PROVIDER_BASE_URL=http://localhost:55001
+IDENTITY_PROVIDER_BASE_URL=http://localhost:11141
 IDENTITY_PROVIDER_REALM=local-realm
 IDENTITY_PROVIDER_CLIENT_ID=local-client
 IDENTITY_PROVIDER_AUDIENCE=
@@ -127,6 +131,10 @@ IDENTITY_PROVIDER_AUDIENCE=
 Use `DB_HOST=local_mssql` only when the API process runs inside the same Docker network where that service name exists.
 
 You can also set `DATABASE_URL` directly to override attribute-based construction.
+
+`DB_PASSWORD` and `DATABASE_URL` have no defaults; the application refuses to start unless at least one of them is set. `DB_TRUST_SERVER_CERTIFICATE` defaults to `false` — set it to `true` only for local development against a self-signed certificate (as in the local Docker setup above). Contact details reported by `/about` (`APP_CONTACT_NAME`, `APP_CONTACT_EMAIL`, `APP_CONTACT_URL`) are omitted unless set. The OpenAPI document's `info` block is fixed to match the shared definition (see `src/pilot_api/api/openapi.py`) and does not change with the `APP_*` settings.
+
+The build/deploy pipeline can supply `APP_BUILD_VERSION` and `APP_DEPLOY_DATE` for `/about`; when unset, `buildVersion` falls back to `APP_VERSION` and `deployDate` to the process start time.
 
 The application listens on port `8000` by default, but this can be overrriden.
 
@@ -187,7 +195,7 @@ python -m alembic upgrade head
 
 All `/v1/...` domain endpoints require a bearer JWT, validated against a self-hosted OAuth2/OIDC identity provider (issuer + JWKS resolved from `IDENTITY_PROVIDER_*` settings). The System endpoints (`/healthcheck`, `/about`) are not protected.
 
-This is reflected in the generated OpenAPI schema: protected endpoints declare a `bearerAuth` requirement, which Swagger UI (`/docs`) shows as a lock icon per operation, with an **Authorize** button to set a bearer token for "Try it out" requests; ReDoc (`/redoc`) shows the same requirement in each operation's details.
+This is reflected in the generated OpenAPI schema: protected endpoints declare a `Bearer` requirement, which Swagger UI (`/docs`) shows as a lock icon per operation, with an **Authorize** button to set a bearer token for "Try it out" requests; ReDoc (`/redoc`) shows the same requirement in each operation's details.
 
 Authorization is role-based. The token's subject is looked up in a mock `UserRoles` table to resolve one of three roles, each permitting a tier of HTTP methods:
 
@@ -207,7 +215,7 @@ Mock users (for local testing): `reader_user`, `working_user`, `working_admin_us
 Example: obtain a token from the local dev identity provider, then call a protected endpoint:
 
 ```bash
-curl -X POST "http://localhost:55001/realms/local-realm/protocol/openid-connect/token" \
+curl -X POST "http://localhost:11141/realms/local-realm/protocol/openid-connect/token" \
   -d "grant_type=password&client_id=local-client&username=working_user&password=<password>"
 
 curl "http://localhost:53060/v1/categories/get-all" \
@@ -229,13 +237,13 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 OTEL_ENVIRONMENT=local-dev
 ```
 
-When `OTEL_ENABLED=false` (the default), none of the OTEL SDKs or instrumentation are activated and the application behaves exactly as it did before this integration.
+When `OTEL_ENABLED=false`, none of the OTEL SDKs or instrumentation are activated.
 
 ### What gets instrumented
 
 - **Traces**: every HTTP request (via `FastAPIInstrumentor`) and every SQLAlchemy query (via `SQLAlchemyInstrumentor`), as child spans of the request span.
 - **Metrics**: FastAPI/ASGI request duration and count, plus standard OTEL SDK metrics, exported every 60s.
-- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The existing `X-Request-ID`/`X-Correlation-ID` headers are also recorded as `app.request_id`/`app.correlation_id` span attributes.
+- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The current request's `RequestSettings` ids (see [Request Settings](#request-settings)) are recorded as `correlationId`/`request.Id` attributes on the request span and every child span, and as `CorrelationId`/`Request.Id` attributes on every OTLP log record emitted during the request. For logged exceptions, the OTLP handler's standard `exception.type`/`exception.message`/`exception.stacktrace` attributes are supplemented with `Exception.Message` (only when the exception has a message but no `args`, so `exception.message` is absent) and `Exception.InnerException` (the formatted `__cause__`, or `__context__` when not suppressed).
 
 ### Running the local OTEL collector
 
@@ -272,7 +280,7 @@ The test suite uses an isolated in-memory SQLite database with dependency overri
 
 This repository includes the shared codebase as a Git submodule at:
 
-- `shared/SharedModule`
+- `shared/PilotSharedSource`
 
 Source:
 
@@ -280,7 +288,7 @@ Source:
 
 ## Clone With SubModules
 
-For a first-time clone, include submodules so `shared/SharedModule` is ready immediately:
+For a first-time clone, include submodules so `shared/PilotSharedSource` is ready immediately:
 
 ```bash
 git clone --recurse-submodules <this-repo-url>
@@ -297,13 +305,13 @@ git submodule update --init --recursive
 When changes are made in `PilotSharedSource`, pull the latest tracked branch for this submodule:
 
 ```bash
-git submodule update --remote --merge shared/SharedModule
+git submodule update --remote --merge shared/PilotSharedSource
 ```
 
 Then commit the updated submodule pointer in this repository:
 
 ```bash
-git add shared/SharedModule .gitmodules
+git add shared/PilotSharedSource .gitmodules
 git commit -m "Update shared submodule"
 ```
 
