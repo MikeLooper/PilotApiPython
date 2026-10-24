@@ -16,7 +16,11 @@ from pilot_api.api.router import api_router
 from pilot_api.config.database import get_engine
 from pilot_api.config.logging_config import configure_logging
 from pilot_api.config.request_settings import RequestSettings, request_settings_var
-from pilot_api.config.telemetry import configure_telemetry, instrument_app
+from pilot_api.config.telemetry import (
+    configure_telemetry,
+    instrument_app,
+    tag_span_with_request_settings,
+)
 from pilot_api.exception.handlers import register_exception_handlers
 
 
@@ -24,9 +28,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request_settings = RequestSettings.from_request(request)
         request.state.request_settings = request_settings
-        current_span = trace.get_current_span()
-        current_span.set_attribute("app.request_id", request_settings.request_id)
-        current_span.set_attribute("app.correlation_id", request_settings.correlation_id)
+        tag_span_with_request_settings(trace.get_current_span(), request_settings)
         request_settings_token = request_settings_var.set(request_settings)
         # Deliberately not reset when call_next raises: the unhandled-error handler
         # runs outside this middleware and must still log with this request's ids.

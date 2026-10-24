@@ -245,7 +245,7 @@ When `OTEL_ENABLED=false`, none of the OTEL SDKs or instrumentation are activate
 
 - **Traces**: every HTTP request (via `FastAPIInstrumentor`) and every SQLAlchemy query (via `SQLAlchemyInstrumentor`), as child spans of the request span.
 - **Metrics**: FastAPI/ASGI request duration and count, plus standard OTEL SDK metrics, exported every 60s.
-- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The current request's `RequestSettings` ids (see [Request Settings](#request-settings)) are also recorded as `app.request_id`/`app.correlation_id` span attributes.
+- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The current request's `RequestSettings` ids (see [Request Settings](#request-settings)) are recorded as `correlationId`/`request.Id` attributes on the request span and every child span, and as `CorrelationId`/`Request.Id` attributes on every OTLP log record emitted during the request. For logged exceptions, the OTLP handler's standard `exception.type`/`exception.message`/`exception.stacktrace` attributes are supplemented with `Exception.Message` (only when the exception has a message but no `args`, so `exception.message` is absent) and `Exception.InnerException` (the formatted `__cause__`, or `__context__` when not suppressed).
 
 ### Running the local OTEL collector
 
