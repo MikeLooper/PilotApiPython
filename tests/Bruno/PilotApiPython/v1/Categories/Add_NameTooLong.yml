@@ -1,0 +1,37 @@
+info:
+  name: Add_NameTooLong
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{Host}}v{{version}}/{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+        "categoryName": "Name Is Too Long"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return bad request", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        test("should identify the invalid value", function () {
+          const resBody = res.getBody();
+
+          expect(resBody).to.have.property("title", "Bad Request");
+          expect(resBody.detail).to.include("body.categoryName: ");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

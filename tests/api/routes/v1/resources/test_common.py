@@ -261,13 +261,75 @@ def test_product_add_defaults_optional_non_nullable_fields(client: TestClient) -
     assert body["unitsOnOrder"] == 0
 
 
-def test_shipper_add_does_not_require_company_name(client: TestClient) -> None:
+def test_product_add_keeps_explicit_null_stock_levels(client: TestClient) -> None:
+    payload = {
+        "productId": 51,
+        "productName": "Nulls",
+        "reorderLevel": None,
+        "unitsInStock": None,
+        "unitsOnOrder": None,
+    }
+
+    add_response = client.post("/v1/products/add", json=payload, headers={"X-Api-Version": "1"})
+    assert add_response.status_code == 201
+
+    body = client.get("/v1/products/get/51", headers={"X-Api-Version": "1"}).json()
+    assert body["reorderLevel"] is None
+    assert body["unitsInStock"] is None
+    assert body["unitsOnOrder"] is None
+
+
+def test_shipper_add_requires_company_name(client: TestClient) -> None:
     response = client.post(
         "/v1/shippers/add", json={"phone": "(503) 555-0000"}, headers={"X-Api-Version": "1"}
     )
 
-    assert response.status_code == 201
-    assert response.json()["id"] > 0
+    assert response.status_code == 400
+    assert "body.companyName: " in response.json()["detail"]
+
+
+@pytest.mark.parametrize("operation", ["get", "delete"])
+@pytest.mark.parametrize("item_id", ["0", "2147483648"])
+def test_out_of_range_id_for_int_key_is_a_bad_request(
+    client: TestClient, operation: str, item_id: str
+) -> None:
+    send = getattr(client, operation)
+
+    response = send(f"/v1/categories/{operation}/{item_id}", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 400
+    assert response.json()["detail"].startswith("path.categoryId: ")
+
+
+@pytest.mark.parametrize("operation", ["get", "delete"])
+@pytest.mark.parametrize("item_id", ["ALFK", "ALFKIX"])
+def test_wrong_length_id_for_string_key_is_a_bad_request(
+    client: TestClient, operation: str, item_id: str
+) -> None:
+    send = getattr(client, operation)
+
+    response = send(f"/v1/customers/{operation}/{item_id}", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 400
+    assert response.json()["detail"].startswith("path.customerId: ")
+
+
+@pytest.mark.parametrize(
+    ("path", "payload", "field"),
+    [
+        ("/v1/categories/add", {"categoryName": "x" * 16}, "body.categoryName: "),
+        ("/v1/categories/add", {"categoryName": None}, "body.categoryName: "),
+        ("/v1/customers/add", {"customerId": "ABC", "companyName": "Short"}, "body.customerId: "),
+        ("/v1/products/add", {"productName": "Chai", "unitsInStock": -1}, "body.unitsInStock: "),
+    ],
+)
+def test_add_payload_violating_definition_is_a_bad_request(
+    client: TestClient, path: str, payload: dict, field: str
+) -> None:
+    response = client.post(path, json=payload, headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 400
+    assert field in response.json()["detail"]
 
 
 def test_add_accepts_structured_json_media_type(client: TestClient) -> None:

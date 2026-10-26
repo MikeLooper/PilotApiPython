@@ -11,6 +11,7 @@ def get_api_version(
             description="The version of the API that should be used for the current call.  If "
             "missing, the application default version will be used.",
             examples=["1.2.3"],
+            max_length=15,
         ),
     ] = None,
 ) -> str | None:
@@ -26,6 +27,7 @@ def get_correlation_id(
             alias="X-Correlation-Id",
             description="Unique identifier used for tracing a transaction across microservices.",
             examples=["7ea2c7f7-8b46-475d-86f8-7aaaa9e4a35b"],
+            max_length=40,
             json_schema_extra={"format": "uuid"},
         ),
     ] = None,
