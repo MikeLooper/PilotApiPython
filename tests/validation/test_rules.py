@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from pilot_api.validation.rules import get_api_version, get_correlation_id
@@ -43,3 +44,24 @@ def test_system_operations_document_no_headers(client: TestClient) -> None:
 
     for path in ("/healthcheck", "/about"):
         assert _header_names(schema["paths"][path]["get"]) == set(), path
+
+
+@pytest.mark.parametrize(
+    ("header", "max_length"), [("X-Api-Version", 15), ("X-Correlation-Id", 40)]
+)
+def test_header_at_max_length_is_accepted(client: TestClient, header: str, max_length: int) -> None:
+    response = client.get("/v1/categories/get-all", headers={header: "1" * max_length})
+
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    ("header", "max_length"), [("X-Api-Version", 15), ("X-Correlation-Id", 40)]
+)
+def test_header_over_max_length_is_a_bad_request(
+    client: TestClient, header: str, max_length: int
+) -> None:
+    response = client.get("/v1/categories/get-all", headers={header: "1" * (max_length + 1)})
+
+    assert response.status_code == 400
+    assert response.json()["detail"].startswith(f"header.{header}: ")

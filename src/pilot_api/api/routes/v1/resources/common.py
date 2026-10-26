@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from pilot_api.api.dependencies import SessionDep
 from pilot_api.dto.schemas import AddResponseIntDto, AddResponseStringDto
+from pilot_api.dto.schemas.fields import Int32Key, StringKey
 from pilot_api.service.crud_service import CrudService
 
 
@@ -48,9 +49,9 @@ def register_single_key_routes(
 ) -> APIRouter:
     router = APIRouter(tags=[tag])
     add_response_type = AddResponseStringDto if key_type is str else AddResponseIntDto
-    # Typing the path param with key_type lets FastAPI reject a malformed id
-    # (e.g. "abc" for an int key) as a 400 ProblemDetails instead of a 500.
-    key_param = Annotated[key_type, Path(alias=path_param_name)]
+    # Typing the path param with the constrained key lets FastAPI reject a malformed id
+    # (e.g. "abc" or 0 for an int key) as a 400 ProblemDetails instead of a 500.
+    key_param = Annotated[Int32Key if key_type is int else StringKey, Path(alias=path_param_name)]
 
     @router.get(f"/{prefix}/get-all", response_model=list[dto_type])
     def get_all(

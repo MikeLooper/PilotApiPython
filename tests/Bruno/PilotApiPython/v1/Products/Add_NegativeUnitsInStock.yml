@@ -1,0 +1,38 @@
+info:
+  name: Add_NegativeUnitsInStock
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{Host}}v{{version}}/{{controller}}/add"
+  body:
+    type: json
+    data: |-
+      {
+        "productName": "Test Product",
+        "unitsInStock": -1
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return bad request", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        test("should identify the invalid value", function () {
+          const resBody = res.getBody();
+
+          expect(resBody).to.have.property("title", "Bad Request");
+          expect(resBody.detail).to.include("body.unitsInStock: ");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
