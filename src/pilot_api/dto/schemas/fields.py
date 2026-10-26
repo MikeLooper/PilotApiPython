@@ -10,8 +10,8 @@ from pydantic_core import CoreSchema
 # Bounds of the Northwind column types, as declared by the shared definition.
 INT16_MAX = 32767
 INT32_MAX = 2147483647
-MONEY_MIN = -922337203685477.5808
-MONEY_MAX = 922337203685477.5807
+MONEY_MIN = -922337203685477.5
+MONEY_MAX = 922337203685477.5
 SQL_DATETIME_MIN = datetime(1753, 1, 1)
 
 
