@@ -8,7 +8,11 @@ from pilot_api.dto.schemas.fields import (
     INT32_MAX,
     MONEY_MAX,
     MONEY_MIN,
+    Fraction,
+    Int32,
     Int32Key,
+    Int32KeyParam,
+    Int32Param,
     Money,
     NonNegativeInt16,
     PastSqlDateTime,
@@ -19,9 +23,35 @@ from pilot_api.dto.schemas.fields import (
 )
 
 
-@pytest.mark.parametrize("value", [1, INT32_MAX, "42"])
-def test_int32_key_within_range_is_accepted(value: int | str) -> None:
-    assert TypeAdapter(Int32Key).validate_python(value) == int(value)
+@pytest.mark.parametrize("value", [1, INT32_MAX])
+def test_int32_key_within_range_is_accepted(value: int) -> None:
+    assert TypeAdapter(Int32Key).validate_python(value) == value
+
+
+@pytest.mark.parametrize(
+    "annotation",
+    [Int32, Int32Key, PositiveInt16, NonNegativeInt16, Fraction, Money, SignedMoney],
+)
+@pytest.mark.parametrize("value", ["1", True])
+def test_body_number_rejects_other_json_types(annotation: object, value: object) -> None:
+    with pytest.raises(ValidationError):
+        TypeAdapter(annotation).validate_python(value)
+
+
+@pytest.mark.parametrize("annotation", [Fraction, Money, SignedMoney])
+def test_body_float_accepts_json_integer(annotation: object) -> None:
+    assert TypeAdapter(annotation).validate_python(1) == 1
+
+
+@pytest.mark.parametrize("annotation", [Int32Param, Int32KeyParam])
+def test_parameter_int_converts_url_text(annotation: object) -> None:
+    assert TypeAdapter(annotation).validate_python("42") == 42
+
+
+@pytest.mark.parametrize("value", ["0", "2147483648", "abc"])
+def test_int32_key_param_rejects_invalid_url_text(value: str) -> None:
+    with pytest.raises(ValidationError):
+        TypeAdapter(Int32KeyParam).validate_python(value)
 
 
 @pytest.mark.parametrize("value", [0, -1, INT32_MAX + 1])
@@ -30,15 +60,15 @@ def test_int32_key_outside_range_is_rejected(value: int) -> None:
         TypeAdapter(Int32Key).validate_python(value)
 
 
-def test_int32_key_json_schema_documents_numeric_and_string_bounds() -> None:
-    schema = TypeAdapter(Int32Key).json_schema()
+@pytest.mark.parametrize("annotation", [Int32Key, Int32KeyParam])
+def test_int32_key_json_schema_documents_format_and_bounds(annotation: object) -> None:
+    schema = TypeAdapter(annotation).json_schema()
 
     assert schema == {
         "type": "integer",
+        "format": "int32",
         "minimum": 1,
         "maximum": INT32_MAX,
-        "minLength": 1,
-        "maxLength": 10,
     }
 
 
@@ -64,10 +94,18 @@ def test_int16_bounds_are_enforced(annotation: object, minimum: int) -> None:
         adapter.validate_python(INT16_MAX + 1)
 
 
-def test_int16_json_schema_documents_string_form_length() -> None:
-    schema = TypeAdapter(PositiveInt16).json_schema()
-
-    assert (schema["minLength"], schema["maxLength"]) == (1, 5)
+@pytest.mark.parametrize(
+    ("annotation", "schema_format"),
+    [
+        (PositiveInt16, "int16"),
+        (NonNegativeInt16, "int16"),
+        (Fraction, "float"),
+        (Money, "double"),
+        (SignedMoney, "double"),
+    ],
+)
+def test_number_json_schema_documents_format(annotation: object, schema_format: str) -> None:
+    assert TypeAdapter(annotation).json_schema()["format"] == schema_format
 
 
 def test_money_rejects_negative_value() -> None:

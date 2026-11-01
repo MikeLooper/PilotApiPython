@@ -34,5 +34,13 @@ INTERNAL_SERVER_ERROR: dict[int | str, dict[str, Any]] = {
     }
 }
 
+# Documented per operation: Add never answers 204.
+NO_CONTENT: dict[int | str, dict[str, Any]] = {
+    204: {
+        "description": "No Content - No content was returned; either by design for an Update or "
+        "Delete, or due to a Null return on a Get.",
+    }
+}
+
 SYSTEM_RESPONSES = INTERNAL_SERVER_ERROR
 RESOURCE_RESPONSES = BAD_REQUEST | UNAUTHORIZED | FORBIDDEN | INTERNAL_SERVER_ERROR

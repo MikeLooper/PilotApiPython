@@ -157,6 +157,44 @@ def test_single_key_domain_crud_contract(client: TestClient, case: dict) -> None
     assert delete_response.status_code == 204
 
 
+@pytest.mark.parametrize("case", ENTITY_CASES, ids=[case["name"] for case in ENTITY_CASES])
+def test_get_all_without_rows_is_no_content(client: TestClient, case: dict) -> None:
+    response = client.get(f"{case['base']}/get-all", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+@pytest.mark.parametrize("case", ENTITY_CASES, ids=[case["name"] for case in ENTITY_CASES])
+def test_get_by_missing_id_is_no_content(client: TestClient, case: dict) -> None:
+    response = client.get(f"{case['base']}/get/{case['id_value']}", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+def test_get_all_past_the_last_page_is_no_content(client: TestClient) -> None:
+    client.post(
+        "/v1/categories/add", json={"categoryName": "Produce"}, headers={"X-Api-Version": "1"}
+    )
+
+    response = client.get("/v1/categories/get-all?page=2", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 204
+
+
+@pytest.mark.parametrize(
+    ("operation", "path"),
+    [("delete", "/v1/categories/delete/999"), ("put", "/v1/categories/update")],
+)
+def test_changing_a_missing_row_is_not_found(client: TestClient, operation: str, path: str) -> None:
+    kwargs = {"json": {"categoryId": 999, "categoryName": "Absent"}} if operation == "put" else {}
+
+    response = client.request(operation, path, headers={"X-Api-Version": "1"}, **kwargs)
+
+    assert response.status_code == 404
+
+
 def test_identity_key_is_generated_when_category_add_omits_key(client: TestClient) -> None:
     payload = {
         "categoryName": "Test Cat",
@@ -210,6 +248,10 @@ def test_get_all_out_of_range_paging_is_a_bad_request(
 
 
 def test_get_all_lowest_valid_paging_is_accepted(client: TestClient) -> None:
+    client.post(
+        "/v1/categories/add", json={"categoryName": "Produce"}, headers={"X-Api-Version": "1"}
+    )
+
     response = client.get(
         "/v1/categories/get-all?page=0&pageSize=1", headers={"X-Api-Version": "1"}
     )
@@ -321,6 +363,10 @@ def test_wrong_length_id_for_string_key_is_a_bad_request(
         ("/v1/categories/add", {"categoryName": None}, "body.categoryName: "),
         ("/v1/customers/add", {"customerId": "ABC", "companyName": "Short"}, "body.customerId: "),
         ("/v1/products/add", {"productName": "Chai", "unitsInStock": -1}, "body.unitsInStock: "),
+        ("/v1/categories/add", {"categoryId": "1", "categoryName": "C"}, "body.categoryId: "),
+        ("/v1/products/add", {"productName": "Chai", "unitPrice": "18"}, "body.unitPrice: "),
+        ("/v1/products/add", {"productName": "Chai", "unitsInStock": "1"}, "body.unitsInStock: "),
+        ("/v1/orders/add", {"freight": "32.38"}, "body.freight: "),
     ],
 )
 def test_add_payload_violating_definition_is_a_bad_request(

@@ -9,10 +9,6 @@ def _omit_defaults(schema: dict[str, Any]) -> None:
         property_schema.pop("default", None)
 
 
-def omit_required(schema: dict[str, Any]) -> None:
-    schema.pop("required", None)
-
-
 class DtoBase(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True, extra="forbid", json_schema_extra=_omit_defaults

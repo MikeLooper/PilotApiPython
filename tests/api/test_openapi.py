@@ -28,6 +28,34 @@ def test_v1_operations_document_standard_error_responses(client: TestClient) -> 
             )
 
 
+def test_only_add_operations_lack_a_no_content_response(client: TestClient) -> None:
+    schema = client.get("/openapi.json").json()
+
+    for path, method, operation in _operations(schema):
+        if path.startswith("/v1/"):
+            documented = "204" in operation["responses"]
+            assert documented is (method != "post"), f"{method.upper()} {path}"
+            if documented:
+                assert "content" not in operation["responses"]["204"], f"{method.upper()} {path}"
+
+
+def test_add_responses_require_their_keys(client: TestClient) -> None:
+    schemas = client.get("/openapi.json").json()["components"]["schemas"]
+
+    assert schemas["AddResponseIntDto"]["required"] == ["id"]
+    assert schemas["AddResponseStringDto"]["required"] == ["id"]
+    assert schemas["AddResponseIntDto"]["properties"]["id"]["format"] == "int32"
+
+
+def test_integer_parameters_are_int32_without_string_constraints(client: TestClient) -> None:
+    operation = client.get("/openapi.json").json()["paths"]["/v1/categories/get/{categoryId}"]
+
+    parameter = next(p for p in operation["get"]["parameters"] if p["name"] == "categoryId")
+    assert parameter["schema"]["format"] == "int32"
+    assert "minLength" not in parameter["schema"]
+    assert "maxLength" not in parameter["schema"]
+
+
 def test_system_operations_document_only_ok_and_server_error(client: TestClient) -> None:
     schema = client.get("/openapi.json").json()
 

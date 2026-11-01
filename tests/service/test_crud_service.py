@@ -27,3 +27,11 @@ def test_crud_service_add_get_update_delete_category(db_session: Session) -> Non
     assert fetched_after_update.categoryName == "Seafood Updated"
 
     service.delete({"categoryId": 8})
+
+
+def test_crud_service_get_one_returns_none_when_missing(db_session: Session) -> None:
+    service = CrudService(
+        session=db_session, model_type=Category, dto_type=CategoriesDto, pk_fields=["categoryId"]
+    )
+
+    assert service.get_one({"categoryId": 999}) is None

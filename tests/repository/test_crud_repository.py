@@ -13,6 +13,12 @@ def test_get_one_raises_not_found_when_entity_missing(db_session: Session) -> No
         repository.get_one({"categoryId": 999})
 
 
+def test_find_one_returns_none_when_entity_missing(db_session: Session) -> None:
+    repository = CrudRepository(session=db_session, model=Category, pk_fields=["categoryId"])
+
+    assert repository.find_one({"categoryId": 999}) is None
+
+
 def test_add_raises_conflict_when_primary_key_exists(db_session: Session) -> None:
     repository = CrudRepository(session=db_session, model=Category, pk_fields=["categoryId"])
 

@@ -236,7 +236,7 @@ def test_reader_can_read_but_not_write(security_client: Callable[[bool], TestCli
     client = security_client(True)
     headers = {"X-Api-Version": "1", "Authorization": "Bearer reader-token"}
 
-    assert client.get("/v1/categories/get-all", headers=headers).status_code == 200
+    assert client.get("/v1/categories/get-all", headers=headers).status_code == 204
     add_response = client.post("/v1/categories/add", json=_CATEGORY_PAYLOAD, headers=headers)
     assert add_response.status_code == 403
     assert add_response.json() == "Role 'read_only_role' is not permitted to perform 'POST'."
@@ -269,7 +269,7 @@ def test_inactive_security_allows_unauthenticated_access_with_warning(
 
     response = client.get("/v1/categories/get-all", headers={"X-Api-Version": "1"})
 
-    assert response.status_code == 200
+    assert response.status_code == 204
     assert "Warning" in response.headers
 
 

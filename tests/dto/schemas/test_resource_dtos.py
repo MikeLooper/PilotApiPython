@@ -106,6 +106,19 @@ INT32_KEYS = [
 ]
 
 
+# Numeric properties the definition types as numbers only, excluding the keys above.
+OTHER_NUMBERS = [
+    (OrderDetailsDto, "discount"),
+    (OrderDetailsDto, "quantity"),
+    (OrderDetailsDto, "unitPrice"),
+    (OrdersDto, "freight"),
+    (ProductsDto, "reorderLevel"),
+    (ProductsDto, "unitPrice"),
+    (ProductsDto, "unitsInStock"),
+    (ProductsDto, "unitsOnOrder"),
+]
+
+
 def _ids(cases: list[tuple]) -> list[str]:
     return [f"{case[0].__name__}.{case[1]}" for case in cases]
 
@@ -163,6 +176,17 @@ def test_dto_int32_key_out_of_range_is_rejected(
 
     with pytest.raises(ValidationError):
         dto_type.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("dto_type", "field"), INT32_KEYS + OTHER_NUMBERS, ids=_ids(INT32_KEYS + OTHER_NUMBERS)
+)
+def test_dto_number_given_as_string_is_rejected(dto_type: type[BaseModel], field: str) -> None:
+    payload = {**MINIMAL_PAYLOADS[dto_type], field: "1"}
+
+    with pytest.raises(ValidationError) as error:
+        dto_type.model_validate(payload)
+    assert error.value.errors()[0]["loc"][0] == field
 
 
 @pytest.mark.parametrize("customer_id", ["ALFK", "ALFKIX"])

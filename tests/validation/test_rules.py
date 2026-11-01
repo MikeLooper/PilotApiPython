@@ -52,7 +52,7 @@ def test_system_operations_document_no_headers(client: TestClient) -> None:
 def test_header_at_max_length_is_accepted(client: TestClient, header: str, max_length: int) -> None:
     response = client.get("/v1/categories/get-all", headers={header: "1" * max_length})
 
-    assert response.status_code == 200
+    assert response.status_code == 204
 
 
 @pytest.mark.parametrize(
