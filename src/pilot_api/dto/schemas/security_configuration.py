@@ -1,4 +1,5 @@
 from pilot_api.dto.schemas.base import DtoBase
+from pilot_api.dto.schemas.fields import Int32
 
 
 class SecurityConfigurationDto(DtoBase):
@@ -6,6 +7,6 @@ class SecurityConfigurationDto(DtoBase):
     realm: str | None = None
     clientId: str | None = None
     requireHttpsMetadata: bool = False
-    clockSkewSeconds: int = 0
+    clockSkewSeconds: Int32 = 0
     authority: str | None = None
     active: bool = True

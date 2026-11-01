@@ -21,12 +21,15 @@ class CrudRepository:
             stmt = stmt.order_by(*order_columns).offset((page - 1) * page_size).limit(page_size)
         return self.session.execute(stmt).scalars().all()
 
-    def get_one(self, keys: dict[str, Any]) -> Any:
+    def find_one(self, keys: dict[str, Any]) -> Any | None:
         if len(self.pk_fields) > 1:
             identity = tuple(keys[field] for field in self.pk_fields)
         else:
             identity = keys[self.pk_fields[0]]
-        entity = self.session.get(self.model, identity)
+        return self.session.get(self.model, identity)
+
+    def get_one(self, keys: dict[str, Any]) -> Any:
+        entity = self.find_one(keys)
         if entity is None:
             raise NotFoundError(f"{self.model.__name__} not found.")
         return entity

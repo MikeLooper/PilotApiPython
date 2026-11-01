@@ -1,0 +1,28 @@
+info:
+  name: GetById_NotFound
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{Host}}v{{version}}/{{controller}}/get/product/2147483647/order/2147483647"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return no content", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+        test("should return an empty body", function () {
+          expect(res.getBody()).to.not.be.ok;
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

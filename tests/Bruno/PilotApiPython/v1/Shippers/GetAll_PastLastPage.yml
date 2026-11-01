@@ -1,0 +1,35 @@
+info:
+  name: GetAll_PastLastPage
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{Host}}v{{version}}/{{controller}}/get-all?page=1000000&pageSize=20"
+  params:
+    - name: page
+      value: "1000000"
+      type: query
+    - name: pageSize
+      value: "20"
+      type: query
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("should return no content", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+        test("should return an empty body", function () {
+          expect(res.getBody()).to.not.be.ok;
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

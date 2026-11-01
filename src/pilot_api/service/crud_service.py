@@ -24,9 +24,9 @@ class CrudService:
         entities = self.repository.get_all(page, page_size)
         return [entity_to_dto(self.dto_type, entity) for entity in entities]
 
-    def get_one(self, keys: dict[str, Any]) -> Any:
-        entity = self.repository.get_one(keys)
-        return entity_to_dto(self.dto_type, entity)
+    def get_one(self, keys: dict[str, Any]) -> Any | None:
+        entity = self.repository.find_one(keys)
+        return None if entity is None else entity_to_dto(self.dto_type, entity)
 
     def add(self, dto: Any) -> int | str:
         entity = dto_to_entity(self.model_type, dto)

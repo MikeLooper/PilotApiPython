@@ -61,3 +61,33 @@ def test_order_detail_add_with_discount_over_one_is_a_bad_request(client: TestCl
 
     assert response.status_code == 400
     assert "body.discount: " in response.json()["detail"]
+
+
+def test_order_details_get_all_without_rows_is_no_content(client: TestClient) -> None:
+    response = client.get("/v1/order-details/get-all", headers={"X-Api-Version": "1"})
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+def test_order_detail_get_by_missing_key_is_no_content(client: TestClient) -> None:
+    response = client.get(
+        "/v1/order-details/get/product/1/order/1001", headers={"X-Api-Version": "1"}
+    )
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+@pytest.mark.parametrize("field", ["discount", "orderId", "productId", "quantity", "unitPrice"])
+def test_order_detail_add_with_number_given_as_string_is_a_bad_request(
+    client: TestClient, field: str
+) -> None:
+    payload = {"orderId": 1001, "productId": 1, "unitPrice": 10.5, "quantity": 2, "discount": 0}
+
+    response = client.post(
+        "/v1/order-details/add", json={**payload, field: "1"}, headers={"X-Api-Version": "1"}
+    )
+
+    assert response.status_code == 400
+    assert f"body.{field}: " in response.json()["detail"]
