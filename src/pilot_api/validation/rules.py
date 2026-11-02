@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Header
+from fastapi import Depends, Header
 
 
 def get_api_version(
@@ -18,6 +18,22 @@ def get_api_version(
     return api_version
 
 
+# Declared so the header is documented (and its length validated) on each operation;
+# RequestSettings.from_request is what actually reads it and makes it available to logging.
+def get_caller_name(
+    caller_name: Annotated[
+        str | None,
+        Header(
+            alias="X-Caller-Name",
+            description="Name of the caller.",
+            examples=["PilotAngularUi"],
+            max_length=100,
+        ),
+    ] = None,
+) -> str | None:
+    return caller_name
+
+
 # Declared so the header is documented on each operation; RequestSettings.from_request
 # is what actually reads it (header names are case-insensitive) and propagates it.
 def get_correlation_id(
@@ -33,3 +49,11 @@ def get_correlation_id(
     ] = None,
 ) -> str | None:
     return correlation_id
+
+
+# The headers every operation in the shared definition accepts, in its declared order.
+COMMON_HEADER_DEPENDENCIES = [
+    Depends(get_api_version),
+    Depends(get_caller_name),
+    Depends(get_correlation_id),
+]

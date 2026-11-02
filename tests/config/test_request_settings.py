@@ -1,5 +1,6 @@
 import uuid
 
+import pytest
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -56,6 +57,38 @@ def test_from_request_ignores_inbound_request_id_header() -> None:
     request_settings = RequestSettings.from_request(_request({"X-Request-Id": "client-req"}))
 
     assert request_settings.request_id != "client-req"
+
+
+def test_from_request_uses_caller_name_header_when_provided() -> None:
+    request_settings = RequestSettings.from_request(_request({"X-Caller-Name": "PilotAngularUi"}))
+
+    assert request_settings.caller_name == "PilotAngularUi"
+
+
+def test_from_request_reads_caller_name_header_case_insensitively() -> None:
+    request_settings = RequestSettings.from_request(_request({"x-caller-name": "PilotAngularUi"}))
+
+    assert request_settings.caller_name == "PilotAngularUi"
+
+
+@pytest.mark.parametrize("headers", [{}, {"X-Caller-Name": ""}])
+def test_from_request_leaves_caller_name_none_when_header_missing_or_blank(
+    headers: dict[str, str],
+) -> None:
+    request_settings = RequestSettings.from_request(_request(headers))
+
+    assert request_settings.caller_name is None
+
+
+def test_apply_to_does_not_echo_caller_name() -> None:
+    request_settings = RequestSettings(
+        request_id="req-1", correlation_id="corr-1", caller_name="PilotAngularUi"
+    )
+    response = Response()
+
+    request_settings.apply_to(response)
+
+    assert "X-Caller-Name" not in response.headers
 
 
 def test_apply_to_sets_correlation_and_request_id_response_headers() -> None:

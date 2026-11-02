@@ -12,7 +12,10 @@ from pilot_api.config.telemetry import (
     tag_span_with_request_settings,
 )
 
-_REQUEST_SETTINGS = RequestSettings(request_id="req-123", correlation_id="corr-456")
+_REQUEST_SETTINGS = RequestSettings(
+    request_id="req-123", correlation_id="corr-456", caller_name="PilotAngularUi"
+)
+_ANONYMOUS_REQUEST_SETTINGS = RequestSettings(request_id="req-123", correlation_id="corr-456")
 
 
 def _tracer_with_exporter() -> tuple:
@@ -32,6 +35,16 @@ def test_tag_span_sets_correlation_and_request_id_attributes() -> None:
     attributes = exporter.get_finished_spans()[0].attributes
     assert attributes["correlationId"] == "corr-456"
     assert attributes["request.Id"] == "req-123"
+    assert attributes["callerName"] == "PilotAngularUi"
+
+
+def test_tag_span_omits_caller_name_when_not_supplied() -> None:
+    tracer, exporter = _tracer_with_exporter()
+
+    with tracer.start_as_current_span("request") as span:
+        tag_span_with_request_settings(span, _ANONYMOUS_REQUEST_SETTINGS)
+
+    assert "callerName" not in exporter.get_finished_spans()[0].attributes
 
 
 def test_span_processor_tags_spans_started_during_a_request() -> None:
@@ -83,12 +96,29 @@ def test_log_filter_adds_request_ids_during_a_request() -> None:
 
     assert getattr(record, "CorrelationId") == "corr-456"
     assert getattr(record, "Request.Id") == "req-123"
+    assert record.CallerName == "PilotAngularUi"
+
+
+def test_log_filter_omits_caller_name_when_not_supplied() -> None:
+    token = request_settings_var.set(_ANONYMOUS_REQUEST_SETTINGS)
+    try:
+        record = _enriched_record()
+    finally:
+        request_settings_var.reset(token)
+
+    assert not hasattr(record, "CallerName")
 
 
 def test_log_filter_adds_nothing_outside_a_request_without_exception() -> None:
     record = _enriched_record()
 
-    for name in ("CorrelationId", "Request.Id", "Exception.Message", "Exception.InnerException"):
+    for name in (
+        "CorrelationId",
+        "Request.Id",
+        "CallerName",
+        "Exception.Message",
+        "Exception.InnerException",
+    ):
         assert not hasattr(record, name)
 
 

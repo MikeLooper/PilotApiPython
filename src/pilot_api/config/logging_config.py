@@ -25,6 +25,10 @@ class RequestContextFilter(logging.Filter):
             record.request_id = request_settings.request_id if request_settings else "-"
         if not hasattr(record, "correlation_id"):
             record.correlation_id = request_settings.correlation_id if request_settings else "-"
+        if not hasattr(record, "caller_name"):
+            record.caller_name = (
+                request_settings.caller_name if request_settings else None
+            ) or "-"
         if not hasattr(record, "operation_id"):
             record.operation_id = "-"
         # Populated by LoggingInstrumentor when OTEL_ENABLED=true; default to
@@ -58,7 +62,7 @@ def configure_logging() -> None:
     )
     format_string = (
         "%(asctime)s %(levelname)s %(name)s %(message)s "
-        "%(request_id)s %(correlation_id)s %(operation_id)s "
+        "%(request_id)s %(correlation_id)s %(caller_name)s %(operation_id)s "
         "%(otelTraceID)s %(otelSpanID)s"
     )
 

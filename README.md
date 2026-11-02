@@ -51,12 +51,24 @@ To avoid unintended schema changes, the application does not execute automatic D
 
 ## Request Settings
 
-`RequestSettings` (`src/pilot_api/config/request_settings.py`) holds the per-request values `request_id` and `correlation_id`. `RequestContextMiddleware` creates one at the start of every request:
+`RequestSettings` (`src/pilot_api/config/request_settings.py`) holds the per-request values `request_id`, `correlation_id`, and `caller_name`. `RequestContextMiddleware` creates one at the start of every request:
 
 - `correlation_id` is read from the `X-Correlation-Id` request header; when the header is missing or blank, a new GUID is generated.
 - `request_id` is a new GUID assigned by the server to the request; any inbound `X-Request-Id` header is ignored.
+- `caller_name` is read from the optional `X-Caller-Name` request header (e.g. `PilotAngularUi`); when the header is missing or blank it is `None` and logged as `-`.
 
-The object is available for the life of the request: inject it into an endpoint with `RequestSettingsDep` (`pilot_api.api.dependencies`), or call `get_current_request_settings()` from code without access to the request. Every log line carries both ids, and every response (including unhandled 500 errors) returns them as the `X-Correlation-Id` and `X-Request-Id` headers.
+Every operation, including `/healthcheck` and `/about`, accepts the optional `X-Api-Version` (max 15 characters), `X-Caller-Name` (max 100), and `X-Correlation-Id` (max 40) headers, as declared in the shared OpenAPI definition. A header longer than its maximum is rejected with a 400 ProblemDetails.
+
+The object is available for the life of the request: inject it into an endpoint with `RequestSettingsDep` (`pilot_api.api.dependencies`), or call `get_current_request_settings()` from code without access to the request. Every log line carries the request id, correlation id, and caller name, and every response (including unhandled 500 errors) returns the ids as the `X-Correlation-Id` and `X-Request-Id` headers. The caller name is not echoed back.
+
+## Logging
+
+Log lines are written to the console (JSON when `LOG_JSON=true`) and, when OpenTelemetry is enabled, exported via OTLP. `RequestContextFilter` stamps each line with `request_id`, `correlation_id`, `caller_name`, and `operation_id`, so callers never need to pass them explicitly.
+
+In addition to application messages, the following are always logged at `INFO`:
+
+- **Endpoint start and end** (`RequestContextMiddleware`): `Endpoint started: GET /v1/categories/get-all` and `Endpoint completed: GET /v1/categories/get-all -> 200 (12.3 ms)`. Requests rejected before reaching the endpoint (validation, security) are bracketed too. An unhandled exception is logged as `Endpoint failed: ...` at `ERROR`, followed by the unhandled-error handler's entry with the traceback.
+- **Database call start and end** (SQLAlchemy engine events in `src/pilot_api/config/database.py`): `Database call started: <statement>` and `Database call completed: <statement> (1.2 ms)`, or `Database call failed: <statement> (1.2 ms) <ExceptionType>` at `ERROR`. Statements are whitespace-collapsed and truncated to 200 characters; they contain only bind placeholders, never parameter values.
 
 ## Setup
 
@@ -243,7 +255,7 @@ When `OTEL_ENABLED=false`, none of the OTEL SDKs or instrumentation are activate
 
 - **Traces**: every HTTP request (via `FastAPIInstrumentor`) and every SQLAlchemy query (via `SQLAlchemyInstrumentor`), as child spans of the request span.
 - **Metrics**: FastAPI/ASGI request duration and count, plus standard OTEL SDK metrics, exported every 60s.
-- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The current request's `RequestSettings` ids (see [Request Settings](#request-settings)) are recorded as `correlationId`/`request.Id` attributes on the request span and every child span, and as `CorrelationId`/`Request.Id` attributes on every OTLP log record emitted during the request. For logged exceptions, the OTLP handler's standard `exception.type`/`exception.message`/`exception.stacktrace` attributes are supplemented with `Exception.Message` (only when the exception has a message but no `args`, so `exception.message` is absent) and `Exception.InnerException` (the formatted `__cause__`, or `__context__` when not suppressed).
+- **Logs**: every Python `logging` call is exported via OTLP in addition to the existing console output. Each log record also carries `otelTraceID`/`otelSpanID` (and, natively for OTLP consumers, `trace_id`/`span_id`) so a log line can be traced back to the request that produced it. The current request's `RequestSettings` ids (see [Request Settings](#request-settings)) are recorded as `correlationId`/`request.Id` attributes on the request span and every child span, and as `CorrelationId`/`Request.Id` attributes on every OTLP log record emitted during the request. When the caller supplies `X-Caller-Name`, it is recorded likewise as `callerName` (spans) and `CallerName` (log records). For logged exceptions, the OTLP handler's standard `exception.type`/`exception.message`/`exception.stacktrace` attributes are supplemented with `Exception.Message` (only when the exception has a message but no `args`, so `exception.message` is absent) and `Exception.InnerException` (the formatted `__cause__`, or `__context__` when not suppressed).
 
 ### Running the local OTEL collector
 

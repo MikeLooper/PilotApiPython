@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from starlette.requests import Request
 from starlette.responses import Response
 
+CALLER_NAME_HEADER = "X-Caller-Name"
 CORRELATION_ID_HEADER = "X-Correlation-Id"
 REQUEST_ID_HEADER = "X-Request-Id"
 
@@ -15,12 +16,17 @@ class RequestSettings:
 
     request_id: str
     correlation_id: str
+    # Optional and caller-supplied; None when the X-Caller-Name header is missing or blank.
+    caller_name: str | None = None
 
     @classmethod
     def from_request(cls, request: Request) -> "RequestSettings":
         # Header lookup is case-insensitive; a missing or blank header gets a fresh GUID.
         correlation_id = request.headers.get(CORRELATION_ID_HEADER) or str(uuid.uuid4())
-        return cls(request_id=str(uuid.uuid4()), correlation_id=correlation_id)
+        caller_name = request.headers.get(CALLER_NAME_HEADER) or None
+        return cls(
+            request_id=str(uuid.uuid4()), correlation_id=correlation_id, caller_name=caller_name
+        )
 
     def apply_to(self, response: Response) -> None:
         response.headers[CORRELATION_ID_HEADER] = self.correlation_id

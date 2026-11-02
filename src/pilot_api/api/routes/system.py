@@ -6,8 +6,11 @@ from pilot_api.api.dependencies import SessionDep
 from pilot_api.api.responses import SYSTEM_RESPONSES
 from pilot_api.dto.schemas import AboutResponseDto
 from pilot_api.service.system_service import SystemService
+from pilot_api.validation.rules import COMMON_HEADER_DEPENDENCIES
 
-router = APIRouter(tags=["System"], responses=SYSTEM_RESPONSES)
+router = APIRouter(
+    tags=["System"], responses=SYSTEM_RESPONSES, dependencies=COMMON_HEADER_DEPENDENCIES
+)
 
 
 @router.get("/healthcheck", response_model=str)

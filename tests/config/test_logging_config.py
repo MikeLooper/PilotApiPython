@@ -51,7 +51,9 @@ def _context_record() -> logging.LogRecord:
 
 def test_request_context_filter_reads_ids_from_request_settings() -> None:
     token = request_settings_var.set(
-        RequestSettings(request_id="req-123", correlation_id="corr-456")
+        RequestSettings(
+            request_id="req-123", correlation_id="corr-456", caller_name="PilotAngularUi"
+        )
     )
     try:
         record = _context_record()
@@ -60,6 +62,19 @@ def test_request_context_filter_reads_ids_from_request_settings() -> None:
 
     assert record.request_id == "req-123"
     assert record.correlation_id == "corr-456"
+    assert record.caller_name == "PilotAngularUi"
+
+
+def test_request_context_filter_defaults_caller_name_when_not_supplied() -> None:
+    token = request_settings_var.set(
+        RequestSettings(request_id="req-123", correlation_id="corr-456")
+    )
+    try:
+        record = _context_record()
+    finally:
+        request_settings_var.reset(token)
+
+    assert record.caller_name == "-"
 
 
 def test_request_context_filter_defaults_outside_a_request() -> None:
@@ -67,6 +82,7 @@ def test_request_context_filter_defaults_outside_a_request() -> None:
 
     assert record.request_id == "-"
     assert record.correlation_id == "-"
+    assert record.caller_name == "-"
 
 
 def test_leaves_unrelated_text_untouched() -> None:
