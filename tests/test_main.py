@@ -60,6 +60,59 @@ def test_middleware_generates_correlation_id_when_header_missing() -> None:
     assert response.headers["X-Correlation-Id"] == body["correlation_id"]
 
 
+def _capture_main_logs() -> tuple[list[logging.LogRecord], logging.Handler]:
+    records: list[logging.LogRecord] = []
+    capture = logging.Handler()
+    capture.emit = records.append
+    capture.addFilter(RequestContextFilter())
+    main_logger = logging.getLogger(main.__name__)
+    main_logger.addHandler(capture)
+    return records, capture
+
+
+def test_middleware_logs_endpoint_start_and_completion_with_request_settings() -> None:
+    records, capture = _capture_main_logs()
+    main_logger = logging.getLogger(main.__name__)
+    previous_level = main_logger.level
+    main_logger.setLevel(logging.INFO)
+    try:
+        response = TestClient(_context_echo_app()).get(
+            "/context", headers={"X-Correlation-Id": "corr-1", "X-Caller-Name": "PilotAngularUi"}
+        )
+    finally:
+        main_logger.removeHandler(capture)
+        main_logger.setLevel(previous_level)
+
+    messages = [record.getMessage() for record in records]
+    assert messages[0] == "Endpoint started: GET /context"
+    assert messages[1].startswith("Endpoint completed: GET /context -> 200 (")
+    for record in records:
+        assert record.correlation_id == "corr-1"
+        assert record.request_id == response.headers["X-Request-Id"]
+        assert record.caller_name == "PilotAngularUi"
+        assert record.operation_id == "/context"
+
+
+def test_middleware_logs_endpoint_failure() -> None:
+    records, capture = _capture_main_logs()
+    app = _context_echo_app()
+    register_exception_handlers(app)
+
+    @app.get("/boom")
+    def boom() -> None:
+        raise RuntimeError("boom")
+
+    try:
+        TestClient(app, raise_server_exceptions=False).get("/boom")
+    finally:
+        logging.getLogger(main.__name__).removeHandler(capture)
+
+    failures = [record for record in records if record.levelno == logging.ERROR]
+    assert [record.getMessage().split(" (")[0] for record in failures] == [
+        "Endpoint failed: GET /boom"
+    ]
+
+
 def test_unhandled_error_log_carries_request_ids() -> None:
     records: list[logging.LogRecord] = []
     capture = logging.Handler()

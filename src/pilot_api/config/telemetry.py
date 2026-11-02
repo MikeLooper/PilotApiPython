@@ -24,8 +24,10 @@ _configured = False
 
 SPAN_CORRELATION_ID_ATTRIBUTE = "correlationId"
 SPAN_REQUEST_ID_ATTRIBUTE = "request.Id"
+SPAN_CALLER_NAME_ATTRIBUTE = "callerName"
 LOG_CORRELATION_ID_ATTRIBUTE = "CorrelationId"
 LOG_REQUEST_ID_ATTRIBUTE = "Request.Id"
+LOG_CALLER_NAME_ATTRIBUTE = "CallerName"
 LOG_EXCEPTION_MESSAGE_ATTRIBUTE = "Exception.Message"
 LOG_EXCEPTION_INNER_EXCEPTION_ATTRIBUTE = "Exception.InnerException"
 
@@ -35,6 +37,9 @@ def tag_span_with_request_settings(
 ) -> None:
     span.set_attribute(SPAN_CORRELATION_ID_ATTRIBUTE, request_settings.correlation_id)
     span.set_attribute(SPAN_REQUEST_ID_ATTRIBUTE, request_settings.request_id)
+    # OTEL attributes cannot be None, so the optional caller name is only set when supplied.
+    if request_settings.caller_name:
+        span.set_attribute(SPAN_CALLER_NAME_ATTRIBUTE, request_settings.caller_name)
 
 
 class RequestSettingsSpanProcessor(SpanProcessor):
@@ -64,6 +69,8 @@ class OtelLogEnrichmentFilter(logging.Filter):
         if request_settings:
             setattr(record, LOG_CORRELATION_ID_ATTRIBUTE, request_settings.correlation_id)
             setattr(record, LOG_REQUEST_ID_ATTRIBUTE, request_settings.request_id)
+            if request_settings.caller_name:
+                setattr(record, LOG_CALLER_NAME_ATTRIBUTE, request_settings.caller_name)
 
         exception = record.exc_info[1] if record.exc_info else None
         if exception is None:

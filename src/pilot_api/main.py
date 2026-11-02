@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -23,6 +24,12 @@ from pilot_api.config.telemetry import (
 )
 from pilot_api.exception.handlers import register_exception_handlers
 
+logger = logging.getLogger(__name__)
+
+
+def _elapsed_ms(started: float) -> float:
+    return (time.perf_counter() - started) * 1000
+
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -30,9 +37,30 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         request.state.request_settings = request_settings
         tag_span_with_request_settings(trace.get_current_span(), request_settings)
         request_settings_token = request_settings_var.set(request_settings)
-        # Deliberately not reset when call_next raises: the unhandled-error handler
-        # runs outside this middleware and must still log with this request's ids.
-        response: Response = await call_next(request)
+        # Logged here rather than in each endpoint so that requests rejected before the
+        # endpoint runs (validation, security) are bracketed too. The request ids and
+        # caller name are stamped on each line by RequestContextFilter.
+        endpoint = f"{request.method} {request.url.path}"
+        log_extra = {"operation_id": request.url.path}
+        logger.info("Endpoint started: %s", endpoint, extra=log_extra)
+        started = time.perf_counter()
+        try:
+            response: Response = await call_next(request)
+        except Exception:
+            # The unhandled-error handler logs the exception itself, with its traceback.
+            logger.error(
+                "Endpoint failed: %s (%.1f ms)", endpoint, _elapsed_ms(started), extra=log_extra
+            )
+            # Deliberately not reset when call_next raises: the unhandled-error handler
+            # runs outside this middleware and must still log with this request's ids.
+            raise
+        logger.info(
+            "Endpoint completed: %s -> %d (%.1f ms)",
+            endpoint,
+            response.status_code,
+            _elapsed_ms(started),
+            extra=log_extra,
+        )
         request_settings_var.reset(request_settings_token)
         request_settings.apply_to(response)
         return response
@@ -61,7 +89,7 @@ def create_app() -> FastAPI:
     install_openapi(app)
     instrument_app(app)
 
-    logging.getLogger(__name__).info("Application initialized")
+    logger.info("Application initialized")
     return app
 
 
