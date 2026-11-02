@@ -15,6 +15,7 @@ from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import Span, SpanProcessor, TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.sampling import ALWAYS_ON
 
 from pilot_api.config.request_settings import RequestSettings, get_current_request_settings
 from pilot_api.config.settings import get_settings
@@ -133,7 +134,8 @@ def configure_telemetry() -> None:
 
     resource = _build_resource()
 
-    tracer_provider = TracerProvider(resource=resource)
+    # Record every request, whatever sampling decision the caller's traceparent carries.
+    tracer_provider = TracerProvider(resource=resource, sampler=ALWAYS_ON)
     tracer_provider.add_span_processor(RequestSettingsSpanProcessor())
     tracer_provider.add_span_processor(BatchSpanProcessor(_build_exporters("traces")))
     trace.set_tracer_provider(tracer_provider)
