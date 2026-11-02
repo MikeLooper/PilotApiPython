@@ -242,7 +242,7 @@ Controlled by these `.env` settings:
 
 ```bash
 OTEL_ENABLED=true
-OTEL_SERVICE_NAME=pilot-api-python
+OTEL_SERVICE_NAME=PilotApiPython
 # "grpc" (port 4317, default) or "http" (port 4318).
 OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
@@ -269,14 +269,14 @@ This exposes the OTEL collector on `localhost:4317` (OTLP gRPC) and `localhost:4
 
 ### Finding this service's data in Grafana
 
-Every signal is tagged with `service.name = pilot-api-python` (from `OTEL_SERVICE_NAME`) and `deployment.environment = local-dev` (from `OTEL_ENVIRONMENT`). Useful starting queries in Grafana Explore:
+Every signal is tagged with `service.name = PilotApiPython` (from `OTEL_SERVICE_NAME`) and `deployment.environment = local-dev` (from `OTEL_ENVIRONMENT`). Useful starting queries in Grafana Explore:
 
 | Data source | Query | Notes |
 | --- | --- | --- |
-| Loki (logs) | `{service_name="pilot-api-python"}` | Filter further, e.g. `{service_name="pilot-api-python"} \|= "error"` |
-| Loki (logs for one trace) | `{service_name="pilot-api-python"} \| trace_id="<trace id>"` | Correlate a specific trace's logs; `trace_id` is populated natively via OTLP |
-| Tempo (traces, TraceQL) | `{resource.service.name="pilot-api-python"}` | Or pick `pilot-api-python` from the Service Name dropdown in the Tempo search UI |
-| Mimir (metrics, PromQL) | `{job="pilot-api-python"}` | `job` mirrors the OTEL `service.name`; e.g. `http_server_request_duration_seconds_count{job="pilot-api-python"}` |
+| Loki (logs) | `{service_name="PilotApiPython"}` | Filter further, e.g. `{service_name="PilotApiPython"} \|= "error"` |
+| Loki (logs for one trace) | `{service_name="PilotApiPython"} \| trace_id="<trace id>"` | Correlate a specific trace's logs; `trace_id` is populated natively via OTLP |
+| Tempo (traces, TraceQL) | `{resource.service.name="PilotApiPython"}` | Or pick `PilotApiPython` from the Service Name dropdown in the Tempo search UI |
+| Mimir (metrics, PromQL) | `{job="PilotApiPython"}` | `job` mirrors the OTEL `service.name`; e.g. `http_server_request_duration_seconds_count{job="PilotApiPython"}` |
 
 From a trace in Tempo, use the **Logs** tab on a span (wired up via the `tracesToLogsV2` datasource setting) to jump straight to the matching Loki log lines for that trace.
 
