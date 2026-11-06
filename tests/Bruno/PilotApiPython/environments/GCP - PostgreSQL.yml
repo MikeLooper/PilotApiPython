@@ -1,0 +1,5 @@
+name: GCP - PostgreSQL
+variables:
+  - name: Host
+    value: http://cloud-api-python-postgres-1efb2c36c23f.us-central1.run.localhost.floci.io:4588/
+    description: "The base URL for cloud-api-python-postgres in the GCP emulator. It changes when the API is redeployed: Testing\\RunBrunoCloudTests-gcp.bat overrides it on every run with the current URL from the Terraform state (Docker repository, Clouds\\terraform\\gcp\\20-apis)."

@@ -1,0 +1,5 @@
+name: Azure - SQL Server
+variables:
+  - name: Host
+    value: http://cloud-api-python-mssql.cae-cloud-apis.b2cacca1063f3e329e67de69fa4e12cf.localhost:4577/
+    description: "The base URL for cloud-api-python-mssql in the Azure emulator. It changes when the API is redeployed: Testing\\RunBrunoCloudTests-azure.bat overrides it on every run with the current URL from the Terraform state (Docker repository, Clouds\\terraform\\azure\\20-apis)."

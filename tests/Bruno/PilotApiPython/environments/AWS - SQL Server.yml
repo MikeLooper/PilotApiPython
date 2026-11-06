@@ -1,0 +1,5 @@
+name: AWS - SQL Server
+variables:
+  - name: Host
+    value: http://bacdf7350b.execute-api.localhost.floci.io:4566/
+    description: "The base URL for cloud-api-python-mssql in the AWS emulator. It changes when the API is redeployed: Testing\\RunBrunoCloudTests-aws.bat overrides it on every run with the current URL from the Terraform state (Docker repository, Clouds\\terraform\\aws\\20-apis)."

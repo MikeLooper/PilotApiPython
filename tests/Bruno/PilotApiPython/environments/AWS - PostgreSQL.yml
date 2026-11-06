@@ -1,0 +1,5 @@
+name: AWS - PostgreSQL
+variables:
+  - name: Host
+    value: http://519910ef08.execute-api.localhost.floci.io:4566/
+    description: "The base URL for cloud-api-python-postgres in the AWS emulator. It changes when the API is redeployed: Testing\\RunBrunoCloudTests-aws.bat overrides it on every run with the current URL from the Terraform state (Docker repository, Clouds\\terraform\\aws\\20-apis)."
